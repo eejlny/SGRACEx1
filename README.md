@@ -30,9 +30,9 @@ edit matrix.h located the in the src directory and modify the following lines if
 #define MAX_M    2048 // max number of features in each input node. For example the cora dataset has 1433 features per node;
 #define MAX_P    16  // number of hidden channels. 
 
-Now go to the sgracex1 directory and perform simulation, C synthesis with this command:
+Now go to the hardware directory and perform simulation, C synthesis with this command:
 
-**vitis_hls -f ./hls/gat/solution1/script.tcl**
+**vitis_hls -f ./script.tcl**
 
 Check script.tcl to make sure that the set_part command matches your device is correct or modify as needed.
 The default part is xczu27dr-ffve1156-2-i that is the FPGA available in an RFSOC2x2 board.
@@ -43,7 +43,7 @@ HLS simulation should report that the results match.
 Once HLS synthesis and IP export has completed launch implementation and bitstream generation with this command:
 
 
-**vivado -mode batch -source project_1.tcl**
+**vivado -mode batch -source ./project_1.tcl**
 
 Optionally modify this line as needed in project_1.tcl to set a new project name/directory 
 
