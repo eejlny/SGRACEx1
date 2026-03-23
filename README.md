@@ -51,12 +51,56 @@ Optionally modify this line as needed in project_1.tcl to set a new project name
 
 After completion all results are available under the new project name directory. 
 
-The software directory contains a test jupyter notebook that can be used to test the design in the PYNQ FPGA board
-and measure performance. The software directory also contains the sgrace_lib.py file that initializes and controls the accelerator.
+The software directory contains python scripts that can be used to test the design in the PYNQ FPGA board
+and measure performance. 
 
-The jupyter notebook uses this library to offload the GNN execution and its location is indicated in the notebook with:
+Open demo_sgrace.py, make sure that dataset is cora.
+dataset_sel = "Cora"
+dataset = Planetoid(root="data/Planetoid", name=dataset_sel, split="full", transform=transform) 
+
+
+The software directory also contains the sgrace.py file that initializes and controls the accelerator.
+
+
+The demo_sgrace script uses this library to offload the GNN execution and its location is indicated in the notebook with:
 
 sys.path.insert(1, '/home/xilinx/jupyter_notebooks/sgrace_lib')
+
+Make sure this location matches your PYNQ system and store sgrace.py and config.py in that location.
+
+Make sure training = 1 in demo_sgrace.py so the hardware will be used in training mode.
+
+
+On the board prepare the PYNQ environment with:
+
+sudo su
+source /etc/profile.d/pynq_venv.sh
+source /etc/profile.d/xrt_setup.sh
+
+Launch execution with:
+
+python3 demo_sgrace.py
+
+After the training run the accuracy reached will the around 0.852 with the cora dataset.
+
+Now you can open demo_sgrace.py and set training = 0 and run the script again.
+
+In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation.
+The model saved from training will be loaded and used and the accuracy should be the same.
+
+To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
+
+Accelerator forward kernel n-layer time: 1.81174ms
+
+This represents the execution time of the model in hardware from inputs to final classification. The other times refer to python execution time that are not hardware accelerated. 
+ 
+
+
+
+
+
+
+
 
 
 
