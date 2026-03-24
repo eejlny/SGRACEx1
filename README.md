@@ -8,6 +8,9 @@ You can find more information on SGRACE capabilities and performance here:
 SGRACE: Scalable Architecture for On-Device Inference and Training of Graph Attention and Convolutional Networks
 https://ieeexplore.ieee.org/document/11108959
 
+<img width="2469" height="1022" alt="image" src="https://github.com/user-attachments/assets/2603d852-0c80-464d-a5b8-29a1f976f685" />
+
+
 
 2.This release directory includes the HLS source code of a base SGRACE configuration.
 
