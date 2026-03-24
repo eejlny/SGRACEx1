@@ -1,4 +1,4 @@
-1.SGRACE is a high-performance dataflow architecture for graph convolutional and attention networks that supports adaptive quantization and sparsity/pruning.
+SGRACE is a high-performance dataflow architecture for graph convolutional and attention networks that supports adaptive quantization and sparsity/pruning.
 
 Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear. 
 
@@ -12,7 +12,7 @@ https://ieeexplore.ieee.org/document/11108959
 
 
 
-2.This release directory includes the HLS source code of a base SGRACE configuration.
+This release directory includes the HLS source code of a base SGRACE configuration.
 
 
 Steps to run full implementation with a base design with one thread done with Linux Ubuntu.
