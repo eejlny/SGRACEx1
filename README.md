@@ -1,3 +1,6 @@
+<img width="760" height="285" alt="image" src="https://github.com/user-attachments/assets/984c9357-5526-429a-af1c-ce79fb895bbd" />
+
+
 SGRACE is a high-performance dataflow architecture for graph convolutional and attention networks that supports adaptive quantization and sparsity. Input tensors for adjacency and features are presented to SGRACE in COO format and SGRACE uses sparse operations (i.e. SPMM) to process them. SGRACE performs all quantization/dequantization processes on-device and adaptively quantizes data from an input precision (i.e. float)  to 1/2/4/8-bit depending on data complexity and systems requirements.  The input precision depends on the data source and could be 12-bit for a ADC sensor or floats for a standard graph dataset.
 
 Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear. 
