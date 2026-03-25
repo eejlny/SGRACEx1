@@ -89,7 +89,7 @@ Launch execution with:
 
 python3 demo_sgrace.py
 
-After the training run the accuracy reached will the around 0.852 with the cora dataset.
+After the training run the accuracy reached will the around 0.852 with the cora dataset with 16 hidden channels.
 
 Now you can open demo_sgrace.py and set training = 0 and run the script again.
 
