@@ -89,7 +89,7 @@ Launch execution with:
 
 python3 demo_sgrace.py
 
-After the training run the accuracy reached will the around 0.852 with the cora dataset with 16 hidden channels.
+After the training run the accuracy reached will the around 0.852 with the cora dataset with 16 hidden channels. You can experiment with wider configurations by simply replacing #define MAX_P    16  with 64, for example. You can also support larger graphs by modifying MAX_N and MAX_M. As expected more channels and larger graphs have a significant impact on complexity specially on BRAM usage. You can reduce the impact on complexity by reducing the number of bits used to store the different parameters.  
 
 Now you can open demo_sgrace.py and set training = 0 and run the script again.
 
