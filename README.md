@@ -7,8 +7,30 @@ Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear.
 
 SGRACE offers two main modes of operation training and inference. The hardware operates end-to-end in inference mode so with a single invocation the whole model is executed while in training mode each layer is executed by the hardware independently so activations can be sent to the backpropagation loop on a per layer basis.  
 
-In training mode the accelerator operates with 8-bit precision that is used to emulate a target precision from 8 to 1 bit for features, adjacency and weights. The hardware operates within the backpropagation loop and implements a form of hardware-aware quantized training. Then, the resulting trained model can be used in inference with a customized and efficient pipeline for the precision selected during training. The FPGA logic is reconfigured to switch between the 8-bit training mode to downto a 1-bit inference mode, for example.  
+In training mode the accelerator operates with 8-bit precision that is used to emulate a target precision from 8 to 1 bit for features, adjacency and weights. The hardware operates within the backpropagation loop and implements a form of hardware-aware quantized training. Then, the resulting trained model can be used in inference with a customized and efficient pipeline for the precision selected during training. The FPGA logic is reconfigured to switch between the 8-bit training mode to downto a 1-bit inference mode, for example.
 
+SGRACE is integrated with Pytorch and PYNQ and can be used to replaced pytorch geometric layers such as GCNConv with their sgrace equivalent GCNConv_sgrace. In order to use SGRACE you need Pytorch and other libraries installed in your PYNQ image. These are the frameworks and libraries that have been used:
+
+pynq 3.0.1  
+numpy 1.24.4  
+torch 1.12.1  
+torch-geometric 2.6.1  
+torch_scatter 2.1.2  
+torch_sparse 0.6.18  
+
+You can start with:
+pip install torch==1.12.1
+
+For torch-geometric, the main issues are with torch_sparse and torch_scatter. You should install them first using the following commands:
+
+pip install --no-use-pep517 torch-sparse
+pip install --no-use-pep517 torch-scatter
+
+And then:
+pip install torch-geometric -f https://pytorch-geometric.com/whl/torch-1.12.1.html
+
+If you encounter problems with NumPy, you can reinstall it with this command:
+pip install "numpy<2" --force-reinstall
 
 You can find more information on SGRACE capabilities and performance here:
 
