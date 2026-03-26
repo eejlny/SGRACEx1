@@ -9,7 +9,7 @@ SGRACE offers two main modes of operation training and inference. The hardware o
 
 In training mode the accelerator operates with 8-bit precision that is used to emulate a target precision from 8 to 1 bit for features, adjacency and weights. The hardware operates within the backpropagation loop and implements a form of hardware-aware quantized training. Then, the resulting trained model can be used in inference with a customized and efficient pipeline for the precision selected during training. The FPGA logic is reconfigured to switch between the 8-bit training mode to downto a 1-bit inference mode, for example.
 
-SGRACE is integrated with Pytorch and PYNQ and can be used to replaced pytorch geometric layers such as GCNConv with their sgrace equivalent GCNConv_sgrace. In order to use SGRACE you need Pytorch and other libraries installed in your PYNQ image. These are the frameworks and libraries that have been used:
+SGRACE is integrated with Pytorch and PYNQ  and can be used to replaced pytorch geometric layers such as GCNConv with their sgrace equivalent GCNConv_sgrace. In order to use SGRACE you need Pytorch and other libraries installed in your PYNQ image. These are the frameworks and libraries that have been used:
 
 pynq 3.0.1  
 numpy 1.24.4  
@@ -18,7 +18,7 @@ torch-geometric 2.6.1
 torch_scatter 2.1.2  
 torch_sparse 0.6.18  
 
-After connection your to FPGA board running PYNQ you can install them running these commands in the FPGA board:
+After connection your to FPGA board running PYNQ and with internet available you can install them running these commands in the FPGA board:
 
 pip install torch==1.12.1
 
