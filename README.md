@@ -18,7 +18,7 @@ torch-geometric 2.6.1
 torch_scatter 2.1.2  
 torch_sparse 0.6.18  
 
-You can start with:
+After connection your to FPGA board running PYNQ you can install them running these commands in the FPGA board:
 pip install torch==1.12.1
 
 For torch-geometric, the main issues are with torch_sparse and torch_scatter. You should install them first using the following commands:
