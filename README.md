@@ -62,6 +62,9 @@ edit matrix.h located the in the src directory and modify the following lines if
 #define MAX_M    2048 // max number of features in each input node. For example the cora dataset has 1433 features per node;
 #define MAX_P    16  // number of hidden channels. 
 
+To enable the attention engine set GAT_ENABLE to 1 
+#define GAT_ENABLE 1 //implement support for GAT
+
 Now go to the hardware directory and perform simulation, C synthesis with this command:
 
 **vitis_hls -f ./script.tcl**
