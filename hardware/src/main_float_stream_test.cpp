@@ -1,13 +1,3 @@
-/*===============================================================================
-* This file is part of the SGRACE GNN accelerator
-* has been written at Linkoping/UPM University
-* Author : Jose Nunez-Yanez
-*Copyright (C) 2026 Jose Nunez-Yanez
-*This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-*This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-*You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
-===============================================================================
-*/
 
 #include <iostream>
 #include <stdlib.h>
@@ -42,7 +32,12 @@ float max_fea=0.0;
 float min_fea=0.0;
 
 //cora data
-#define gcn_coo_cora //ok pass
+#define gcn_coo_cora
+//#define dense_test
+//#define sparse_test
+//#define linear_dense
+
+//#define gcn_coo_cora //ok pass
 
 
 #ifdef gcn_coo_cora
@@ -77,11 +72,8 @@ int M_fea = 1433;  // number of input features
 int P_w = 16;  // number of features in the hidden layer
 int NNZ_adj = 13264;  // number of non-zero values of adjacency
 int NNZ_fea = 49216;  // number of non-zero values of feature
-//static const std::string adj_name = "../../../../../../sgracex1/data2/gcn_adj_coo_cora.txt";
-//static const std::string fea_name = "../../../../../../sgracex1/data2/gcn_fea_coo_cora.txt";
-//static const std::string d_name = "../../../../../../sgracex1/data2/gcn_out_cora.txt";
-//static const std::string w_name = "../../../../../../sgracex1/data2/gcn_weights_cora.txt";
-//static const std::string ate_name = "../../../../../../sgracex1/data2/gcn_ate.txt";
+
+
 static const std::string adj_name = "../../../../data2/gcn_adj_coo_cora.txt";
 static const std::string fea_name = "../../../../data2/gcn_fea_coo_cora.txt";
 static const std::string d_name = "../../../../data2/gcn_out_cora.txt";
@@ -96,6 +88,224 @@ static const std::string ate_name = "../../../../data2/gcn_ate.txt";
 
 #endif
 
+#ifdef gcn_coo
+
+float deq_factor_0=6.50108422;
+int scale_fea_0=3;
+
+bool gemm_mode = 0;
+bool stream_mode1=1;
+bool linear_mode=0;
+
+//8-bit accb off
+int f_align = 0;
+int beta_qu = 255;
+
+//8-bit accb off
+//int f_align = 7;
+//int beta_qu = 1;
+
+float quantization_scale_adj = 1/0.0039215686;
+float quantization_scale_fea_0=1/0.0039215686;
+float quantization_scale_w_0=1/0.0062992125;
+float quantization_scale_lin_0=1/0.0062992125;
+
+
+
+float zero_point_adj = 0.0;
+int qbits_adj=8;
+int beta_q_adj = 255;
+//STYPE scale_fea = 3;
+
+bool gat_mode = 0;
+bool relu = 1;
+int N_adj = 2708;  // number of nodes
+int M_fea = 1433;  // number of input features
+int P_w = 16;  // number of features in the hidden layer
+//int P_w = 2;  // number of features in the hidden layer
+int NNZ_adj = 13264;  // number of non-zero values of adjacency
+int NNZ_fea = 49216;  // number of non-zero values of feature
+static const std::string adj_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_adj_coo.txt";
+static const std::string fea_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_fea_coo.txt";
+//static const std::string fea_name = "../../../../../data2/gcn_fea_coo_linear.txt";
+static const std::string d_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_out.txt";
+//static const std::string w_name = "../../../../../data2/gcn_weights.txt";
+static const std::string w_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_weights.txt";
+static const std::string ate_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_ate.txt";
+#endif
+
+#ifdef dense_test
+
+float deq_factor_0=4.063;
+int scale_fea_0=3;
+
+bool gemm_mode = 1;
+bool stream_mode1=1;
+bool linear_mode=0;
+
+//8-bit accb off
+int f_align = 0;
+int beta_qu = 255;
+
+//8-bit accb off
+//int f_align = 7;
+//int beta_qu = 1;
+
+float quantization_scale_adj=255.0;
+float quantization_scale_fea_0=255.0;
+float quantization_scale_w_0=127;
+float quantization_scale_lin_0=31.75;
+
+
+
+float zero_point_adj = 0.0;
+int qbits_adj=8;
+int beta_q_adj = 255;
+//STYPE scale_fea = 3;
+
+bool gat_mode = 0;
+bool relu = 1;
+int N_adj = 2162;  // number of nodes
+int M_fea = 128;  // number of input features
+int P_w = 64;  // number of features in the hidden layer
+//int P_w = 2;  // number of features in the hidden layer
+int NNZ_adj = 9026;  // number of non-zero values of adjacency
+//int NNZ_fea = 4480;  // number of non-zero values of feature
+int NNZ_fea = 276736;  // number of non-zero values of feature
+static const std::string adj_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_adj.txt";
+//static const std::string fea_name = "../../../../../data2/sparse_fea.txt";
+static const std::string fea_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/dense_fea.txt";
+//static const std::string fea_name = "../../../../../data2/gcn_fea_coo_linear.txt";
+static const std::string d_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_out.txt";
+//static const std::string w_name = "../../../../../data2/gcn_weights.txt";
+static const std::string w_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_weights.txt";
+static const std::string ate_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_ate.txt";
+#endif
+
+#ifdef sparse_test
+
+float deq_factor_0=4.063;
+int scale_fea_0=3;
+
+bool gemm_mode = 0;
+bool stream_mode1=1;
+bool linear_mode=0;
+
+//8-bit accb off
+int f_align = 0;
+int beta_qu = 255;
+
+//8-bit accb off
+//int f_align = 7;
+//int beta_qu = 1;
+
+float quantization_scale_adj=255.0;
+float quantization_scale_fea_0=255.0;
+float quantization_scale_w_0=127;
+float quantization_scale_lin_0=31.75;
+
+
+
+float zero_point_adj = 0.0;
+int qbits_adj=8;
+int beta_q_adj = 255;
+//STYPE scale_fea = 3;
+
+bool gat_mode = 0;
+bool relu = 1;
+int N_adj = 2162;  // number of nodes
+int M_fea = 128;  // number of input features
+int P_w = 64;  // number of features in the hidden layer
+//int P_w = 2;  // number of features in the hidden layer
+int NNZ_adj = 9026;  // number of non-zero values of adjacency
+int NNZ_fea = 4480;  // number of non-zero values of feature
+//int NNZ_fea = 276736;  // number of non-zero values of feature
+static const std::string adj_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_adj.txt";
+static const std::string fea_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_fea.txt";
+static const std::string d_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_out.txt";
+static const std::string w_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_weights.txt";
+static const std::string ate_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_ate.txt";
+#endif
+
+#ifdef linear_dense
+
+float deq_factor_0=32.5;
+int scale_fea_0=1;
+
+bool gemm_mode = 1;
+bool stream_mode1=0;
+bool linear_mode=1;
+
+
+//int beta_qu = 255;
+//int f_align = 0;
+int beta_qu = 1; //
+int f_align = 7;
+
+float quantization_scale_adj = 1/0.0039215686;
+float quantization_scale_fea_0=1/0.0039215686;
+float quantization_scale_w_0=254.0;
+float quantization_scale_lin_0=1/0.0039215686; //15.8;
+
+float zero_point_adj = 0.0;
+int qbits_adj=8;
+int beta_q_adj = 255;
+//STYPE scale_fea = 3;
+
+bool gat_mode = 0;
+bool relu = 1;
+int N_adj = 2708;  // number of nodes
+int M_fea = 16;  // number of input features
+int P_w = 7;  // number of features in the hidden layer
+int NNZ_adj = 0;  // number of non-zero values of adjacency
+int NNZ_fea = N_adj*M_fea;  // number of non-zero values of feature
+static const std::string adj_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_adj_coo.txt";
+static const std::string fea_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/linear_in.txt";
+static const std::string d_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/linear_out.txt";
+static const std::string w_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/linear_weights.txt";
+static const std::string ate_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_ate.txt";
+
+
+#endif
+
+
+
+#ifdef gat_coo
+#define use_gemm 0
+
+//int f_align=7;
+//float quantization_scale_adj=1/0.1;
+//float quantization_scale_fea=1/1.0;
+//float quantization_scale_w=1/0.1;
+//float deq_factor=0.6400000001;
+//int beta_qu=1;
+
+//float quantization_scale_adj = 1/0.0039;
+//float quantization_scale_fea = 1/0.0039215686;
+//float quantization_scale_w =   1/0.0062992125;
+//float deq_factor = 6.50108422;
+
+float zero_point_adj = 0.0;
+int qbits_adj=8;
+int beta_q_adj = 255;
+//STYPE scale_fea = 2;
+
+bool gat_mode = 1;
+bool relu = 1;
+int N_adj = 2708;  // number of nodes
+int M_fea = 1433;  // number of input features
+int P_w = 16;  // number of features in the hidden layer
+//int P_w = 2;  // number of features in the hidden layer
+int NNZ_adj = 13264;  // number of non-zero values of adjacency
+int NNZ_fea = 49216;  // number of non-zero values of feature
+static const std::string adj_name = "../../../../../data2/gcn_adj_coo.txt";
+static const std::string fea_name = "../../../../../data2/gcn_fea_coo.txt";
+static const std::string d_name = "../../../../../data2/gat_out.txt";
+//static const std::string w_name = "../../../../../data2/gcn_weights.txt";
+static const std::string w_name = "../../../../../data2/gcn_weights.txt";
+static const std::string ate_name = "../../../../../data2/gat_ate.txt";
+#endif
+
 
 
 
@@ -103,6 +313,153 @@ double getTimestamp() {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	return tv.tv_usec + tv.tv_sec * 1e6;
+}
+
+
+
+void quant_adj(ATYPE &BW,float B,float quantization_scale,int f_align, int beta_qu)
+{
+
+    //std::cout << "fea in " << B << std::endl;
+	float vfloat = quantization_scale*B+zero_point;
+	float vround = hls::round(vfloat);
+
+
+    //std::cout << "VROUND " << vround << std::endl;
+
+	float ibeta_qu = (float)beta_qu;
+	float ialpha_qu = (float)(0.0);
+
+
+    //clippping
+	if (vfloat>ibeta_qu)
+		vfloat = ibeta_qu;
+	else if (vfloat<ialpha_qu)
+		vfloat = ialpha_qu;
+
+	ITYPE vquant = ITYPE(vfloat);
+
+    //std::cout << "FQUANT " << vquant << std::endl;
+	if(f_align==7) //BINARY MODE
+		f_align = 6;
+	ITYPE vnorm = vquant >> (qbits-f_align-1);
+ 	ATYPE fval = ATYPE(vnorm);
+
+    //std::cout << "FNORM " << fval << std::endl;
+
+	BW = fval;
+
+
+}
+
+void quant_fea(FTYPE &BW,float B,float quantization_scale,int f_align, int beta_qu)
+{
+
+    //std::cout << "fea in " << B << std::endl;
+	float vfloat = quantization_scale*B+zero_point;
+	float vround = hls::round(vfloat);
+
+
+
+    //std::cout << "VROUND " << vround << std::endl;
+
+	float ibeta_qu = (float)beta_qu;
+	float ialpha_qu = (float)(0.0);
+
+
+    //clippping
+	if (vfloat>ibeta_qu)
+		vfloat = ibeta_qu;
+	else if (vfloat<ialpha_qu)
+		vfloat = ialpha_qu;
+
+	ITYPE vquant = ITYPE(vround);
+
+    //std::cout << "FQUANT " << vquant << std::endl;
+	if(f_align==7) //BINARY MODE
+		f_align = 6;
+	ITYPE vnorm = vquant >> (qbits-f_align-1);
+ 	FTYPE fval = FTYPE(vnorm);
+
+    //std::cout << "FNORM " << fval << std::endl;
+
+
+
+	BW = fval;
+
+
+}
+
+
+
+void quant_w(BTYPE &BW,float B,float quantization_scale,int f_align, int beta_qu)
+{
+
+	float vfloat = quantization_scale*B+zero_point;
+
+	float vround;
+
+	//float vround = vfloat;
+
+	//std::cout <<  B << " " ;
+
+    //std::cout << vround << " ";
+
+	ITYPE ibeta_q,ialpha_q,beta_q;
+
+    if(f_align==7)
+	{
+	    ibeta_q = 1;
+	    ialpha_q = -1;
+        //vround = hls::round(vfloat*10);
+		if(vfloat < 0.0) //BINARY MODE
+		 vround = -1.0;
+	    else
+		 vround = 1.0;
+	}
+    else
+    {
+		beta_q = ITYPE(beta_qu>>1);
+	    ibeta_q = (ITYPE)beta_q;
+	    ialpha_q = -(ITYPE)beta_q;
+    	vround = hls::round(vfloat);
+    }
+
+
+	//float vround = hls::round(vfloat);
+
+
+    //std::cout << vround << " ";
+
+
+	ITYPE vquant = ITYPE(vround);
+
+	//std::cout << "WQUANT " << vquant << std::endl;
+
+
+
+    //std::cout << "VROUND " << vround << std::endl;
+
+
+
+	//clippping
+	if (vquant>ibeta_q)
+		vquant = ibeta_q;
+	else if (vquant<ialpha_q)
+		vquant = ialpha_q;
+
+    //std::cout << "WQUANT " << vquant << std::endl;
+	if(f_align==7) //BINARY MODE
+		f_align = 6;
+	ITYPE vnorm = vquant >> (qbits-f_align-1);
+ 	BTYPE fval = BTYPE(vnorm);
+
+    //std::cout <<  fval << std::endl;
+
+	BW = fval;
+
+
+
 }
 
 
@@ -191,7 +548,6 @@ static void load_result_lines(int N,int P,float *A,std::string file_name)
 
 
 }
-
 
 static void load_weights(int M,int P,INTYPES *A,std::string file_name)
 {
@@ -372,6 +728,7 @@ static void load_fea(int N,int M,INTYPE *A,std::string file_name)
         	// Extract each integer
         	ss >> val;
 
+
         	if (val==0)
         		val_zero++;
 
@@ -409,7 +766,7 @@ static void load_adj(int N,int M,INTYPE *A,std::string file_name)
          std::ifstream myFile(file_name);
 
 	// Make sure the file is open
-	if(!myFile.is_open()) throw std::runtime_error("Could not open float file");
+	if(!myFile.is_open()) throw std::runtime_error("Could not open float adj file");
 	else
 		std::cout << "reading " << file_name << " file" << std::endl;
 
@@ -501,7 +858,7 @@ static int result_check(STYPE scale_fea,int N,int P, OUTTYPE *D, float *D_sw)
         	 if ((abs(D_sw[i]-DH)) > 0.20) {
         	               std::cout << "Mismatch: data index= " << i << " " << "golden = " << D_sw[i]
         	                         << ", kernel = " << DH << std::endl;
-        	               //return 0;
+        	               return 0;
         	               pass = 0;
         	               error_count++;
 
@@ -762,7 +1119,7 @@ int   nnz_value)
 
 	// Make sure the file is open
 	if(!inFile.is_open())
-		throw std::runtime_error("Could not open coo adj file");
+		throw std::runtime_error("Could not open csr file");
 	else
 		std::cout << "reading " << file_name << " file" << std::endl;
 
@@ -1858,25 +2215,25 @@ int main(int argc, char* argv[]){
      //std::cout << "MIN FEA " << min_fea << std::endl;
 
 
-     free(adj_m);
-     free(fea_m);
-     free(D);
+     //free(adj_m);
+     //free(fea_m);
+     //free(D);
 
-     free(D_sw);
-     free(A_param);
-     free(shift);
-     free(bias);
-     free(profiling);
+     //free(D_sw);
+     //free(A_param);
+     //free(shift);
+    //free(bias);
+     //free(profiling);
 
-     free(values_fea);
-     free(colIndices_fea);
-     free(rowPtr_fea);
+     //free(values_fea);
+     //free(colIndices_fea);
+     //free(rowPtr_fea);
 
-     free(values_adj);
-     free(colIndices_adj);
-     free(rowPtr_adj);
+     //free(values_adj);
+     //free(colIndices_adj);
+     //free(rowPtr_adj);
 
-     free(w_m);
+     //free(w_m);
 
 
 
