@@ -42,8 +42,8 @@ float max_fea=0.0;
 float min_fea=0.0;
 
 //cora data
-#define gcn_coo_cora
-//#define dense_test
+//#define gcn_coo_cora
+#define dense_test
 //#define sparse_test
 //#define linear_dense
 
@@ -177,14 +177,14 @@ int P_w = 64;  // number of features in the hidden layer
 int NNZ_adj = 9026;  // number of non-zero values of adjacency
 //int NNZ_fea = 4480;  // number of non-zero values of feature
 int NNZ_fea = 276736;  // number of non-zero values of feature
-static const std::string adj_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_adj.txt";
-//static const std::string fea_name = "../../../../../data2/sparse_fea.txt";
-static const std::string fea_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/dense_fea.txt";
+static const std::string adj_name = "../../../../data2/sparse_adj.txt";
+//static const std::string fea_name = "../../../../data2/sparse_fea.txt";
+static const std::string fea_name = "../../../../data2/dense_fea.txt";
 //static const std::string fea_name = "../../../../../data2/gcn_fea_coo_linear.txt";
-static const std::string d_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_out.txt";
+static const std::string d_name = "../../../../data2/sparse_out.txt";
 //static const std::string w_name = "../../../../../data2/gcn_weights.txt";
-static const std::string w_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_weights.txt";
-static const std::string ate_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_ate.txt";
+static const std::string w_name = "../../../../data2/sparse_weights.txt";
+static const std::string ate_name = "../../../../data2/gcn_ate.txt";
 #endif
 
 #ifdef sparse_test
@@ -225,11 +225,11 @@ int P_w = 64;  // number of features in the hidden layer
 int NNZ_adj = 9026;  // number of non-zero values of adjacency
 int NNZ_fea = 4480;  // number of non-zero values of feature
 //int NNZ_fea = 276736;  // number of non-zero values of feature
-static const std::string adj_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_adj.txt";
-static const std::string fea_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_fea.txt";
-static const std::string d_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_out.txt";
-static const std::string w_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/sparse_weights.txt";
-static const std::string ate_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_ate.txt";
+static const std::string adj_name = "../../../../data2/sparse_adj.txt";
+static const std::string fea_name = "../../../../data2/sparse_fea.txt";
+static const std::string d_name = "../../../../data2/sparse_out.txt";
+static const std::string w_name = "../../../../data2/sparse_weights.txt";
+static const std::string ate_name = "../../../../data2/gcn_ate.txt";
 #endif
 
 #ifdef linear_dense
