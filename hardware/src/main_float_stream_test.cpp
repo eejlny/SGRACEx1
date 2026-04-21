@@ -43,8 +43,8 @@ float min_fea=0.0;
 
 //cora data
 //#define gcn_coo_cora
-#define dense_test
-//#define sparse_test
+//#define dense_test
+#define sparse_test
 //#define linear_dense
 
 //#define gcn_coo_cora //ok pass
