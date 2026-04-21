@@ -3,7 +3,7 @@
 
 SGRACE is a high-performance dataflow architecture for graph convolutional and attention networks that supports adaptive quantization and sparsity. Input tensors for adjacency and features are presented to SGRACE in COO format and SGRACE uses sparse data operations (i.e. SPMM) to process them. SGRACE performs all quantization/dequantization processes on-device and adaptively quantizes data from an input precision (i.e. float)  to 1/2/4/8-bit depending on data complexity and systems requirements.  The input precision depends on the data source and could be 12-bit for a ADC sensor or floats for a standard graph dataset.
 
-Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear. 
+Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear but the flexibility of the hardware accelerator means that other configurations are possible for GINConv, SAGE-GAT etc. SGRACE is built around 4 compute engines: agregation engine, combination engine, attention engine and linear engine that can work together in flexibly configurations and this means that different message passing layers can be implemented. 
 
 SGRACE offers two main modes of operation training and inference. The hardware operates end-to-end in inference mode so with a single invocation the whole model is executed while in training mode each layer is executed by the hardware independently so activations can be sent to the backpropagation loop on a per layer basis.  
 
@@ -41,15 +41,13 @@ https://ieeexplore.ieee.org/document/11108959
 
 <img width="2469" height="1022" alt="image" src="https://github.com/user-attachments/assets/2603d852-0c80-464d-a5b8-29a1f976f685" />
 
+Most of the tests have been done with Vitis 2022.1 version and Pynq 2.7.0.
 
-
-This release directory includes the HLS source code of a base SGRACE configuration.
-
+Note that Vitis version 2024 seems to have issues with the dataflow compilation although version 2025 does not report errors during compilation. 
 
 Steps to run full implementation with a base design with one thread done with Linux Ubuntu.
 
 Clone the contents of this repository in a sgracex1 directory.
-
 Setup path to the Vitis FPGA tools, for example:
 
 **module load vitis/2022.1**
