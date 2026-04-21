@@ -82,22 +82,14 @@ int M_fea = 1433;  // number of input features
 int P_w = 16;  // number of features in the hidden layer
 int NNZ_adj = 13264;  // number of non-zero values of adjacency
 int NNZ_fea = 49216;  // number of non-zero values of feature
-//static const std::string adj_name = "../../../../../../sgracex1/data2/gcn_adj_coo_cora.txt";
-//static const std::string fea_name = "../../../../../../sgracex1/data2/gcn_fea_coo_cora.txt";
-//static const std::string d_name = "../../../../../../sgracex1/data2/gcn_out_cora.txt";
-//static const std::string w_name = "../../../../../../sgracex1/data2/gcn_weights_cora.txt";
-//static const std::string ate_name = "../../../../../../sgracex1/data2/gcn_ate.txt";
-static const std::string adj_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_adj_coo_cora.txt";
-static const std::string fea_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_fea_coo_cora.txt";
-static const std::string d_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_out_cora.txt";
-static const std::string w_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_weights_cora.txt";
-static const std::string ate_name = "../../../../../../gat-rfsoc-mt-all-2024-sage/data2/gcn_ate.txt";
 
-//static const std::string adj_name = "../data2/gcn_adj_coo_cora.txt";
-//static const std::string fea_name = "../data2/gcn_fea_coo_cora.txt";
-//static const std::string d_name = "../data2/gcn_out_cora.txt";
-//static const std::string w_name = "../data2/gcn_weights_cora.txt";
-//static const std::string ate_name = "../data2/gcn_ate.txt";
+static const std::string adj_name = "../../../../data2/gcn_adj_coo_cora.txt";
+static const std::string fea_name = "../../../../data2/gcn_fea_coo_cora.txt";
+static const std::string d_name = "../../../../data2/gcn_out_cora.txt";
+static const std::string w_name = "../../../../data2/gcn_weights_cora.txt";
+static const std::string ate_name = "../../../../data2/gcn_ate.txt";
+
+
 
 #endif
 
