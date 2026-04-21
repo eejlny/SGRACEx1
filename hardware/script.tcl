@@ -16,7 +16,7 @@ config_interface -s_axilite_auto_restart_counter 1
 config_export -format ip_catalog -rtl verilog
 source "./directives.tcl"
 csim_design -O
-csynth_design
+#csynth_design
 #cosim_design -O -disable_deadlock_detection
-export_design -rtl verilog -format ip_catalog
+#export_design -rtl verilog -format ip_catalog
 exit
