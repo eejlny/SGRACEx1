@@ -105,7 +105,7 @@
 #define GNN_ONLY 0 //implement support only for GNN (not linear)
 #define LINEAR_ONLY 0 //implement support only for LINEAR
 #define GATV2 0 //usegatv2 modificatino or standard gat
-#define SPMM_BLOCK 1
+#define SPMM_BLOCK 1 //Fused row execution optimization to improve sparse performance. 1 no fusion or 4 for 4-row fusion.
 #define ATEN_BLOCK 1 //leave aten block at 1 since dataflow issues otherwise
 #define OPT_ATTN 1 ////OPT_ATTN control how much sparsity expected in adj (e.g. OPT_ATTN = 1 worse case with fully dense adjacency,OPT_ATTN = 8 12.5% non zeros in adj) (this is per row, some rows have quite a few nonzeros)
 #define B_WIDTH_BLOCK MAX_P //96 //attention cannot do blocks so this value has to match the W width
