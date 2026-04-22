@@ -42,7 +42,7 @@
 
 #define MAX_N    4096 //20480  //4096 //38000 //4096 //20480 //32768 //8192 //20480  //4096 //8192 //4096 //1024 //98304 //4096 //20480 // 4096 //256 // 6144 //20480//16384 //4096 //32768 //20480 //64
 #define MAX_M    2048 //4096 //4096 //20480  //4096 //38000 ///4096 //20480 //32768 //8192 //20480  //4096 //8192 //4096 //1024 //98304 //4096 //20480 // 4096 // 256 // 6144 //20480//16384 //4096 //24576 //2048 //384 //1536 //384 //1536 // 384 //48 //768 //96 //384 //96 //384 //96 //384// 96
-#define MAX_P    64 //2048 //512 //64//1//64//1
+#define MAX_P    16 //2048 //512 //64//1//64//1
 
 #define MAX_FIFO 16
 #define PIPO_BLOCKS 2 // use a PIPO with only one block to save memory instead of standard 2
@@ -99,7 +99,7 @@
 #define INT_DEQUANT 1 //remove the scaling of the quantization and the internal scaling in the output (needed and done in hardware)
 #define FEA_THREADS 1
 #define ADJ_THREADS 1
-#define GAT_ENABLE 0 //implement support for GAT
+#define GAT_ENABLE 1 //implement support for GAT
 #define GNN_ONLY 0 //implement support only for GNN (not linear)
 #define LINEAR_ONLY 0 //implement support only for LINEAR
 #define GATV2 0 //usegatv2 modificatino or standard gat
