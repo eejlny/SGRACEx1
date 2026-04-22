@@ -3,13 +3,13 @@
 
 SGRACE is a high-performance dataflow architecture for graph convolutional and attention networks that supports adaptive quantization and sparsity. Input tensors for adjacency and features are presented to SGRACE in COO format and SGRACE uses sparse data operations (i.e. SPMM) to process them. SGRACE performs all quantization/dequantization processes on-device and adaptively quantizes data from an input precision (i.e. float)  to 1/2/4/8-bit depending on data complexity and systems requirements.  The input precision depends on the data source and could be 12-bit for a ADC sensor or floats for a standard graph dataset.
 
-Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear but the flexibility of the hardware accelerator means that other configurations are possible for GINConv, SAGE-GAT etc. SGRACE is built around 4 compute engines: agregation engine, combination engine, attention engine and linear engine arranged in a parallel and dataflow configurations. The flexibility of the hardware means that different message passing layers can be implemented. 
+Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear but the flexibility of the hardware accelerator means that other configurations are possible for GINConv, SAGE-GAT etc. SGRACE is built around 4 compute engines: agregation engine, combination engine, attention engine and linear engine arranged in a parallel and dataflow configurations. SGRACE uses a global formulation to maximize performance and the flexibility of the hardware means that multiple message passing layers can be implemented. 
 
 SGRACE offers two main modes of operation training and inference. The hardware operates end-to-end in inference mode so with a single invocation the whole model is executed while in training mode each layer is executed by the hardware independently so activations can be sent to the backpropagation loop on a per layer basis.  
 
 In training mode the accelerator operates with 8-bit precision that is used to emulate a target precision from 8 to 1 bit for features, adjacency and weights. The hardware operates within the backpropagation loop and implements a form of hardware-aware quantized training. Then, the resulting trained model can be used in inference with a customized and efficient pipeline for the precision selected during training. The FPGA logic is reconfigured to switch between the 8-bit training mode downto a 1-bit inference mode, for example.
 
-SGRACE is integrated with Pytorch and PYNQ  and can be used to replaced pytorch geometric layers such as GCNConv with their sgrace equivalent GCNConv_sgrace. In order to use SGRACE you need Pytorch and other libraries installed in your PYNQ image. These are the frameworks and libraries that have been used:
+SGRACE has been targeted to Zynq FPGA boards running AMD PYNQ. In the Zynq FPGA board SGRACE is integrated with Pytorch and AMD PYNQ  and can be used to replaced pytorch geometric layers such as GCNConv with their sgrace equivalent GCNConv_sgrace. In order to use SGRACE you need Pytorch and other libraries installed in your PYNQ image. These are the frameworks and libraries that have been used:
 
 pynq 3.0.1  
 numpy 1.24.4  
@@ -59,13 +59,16 @@ or
 edit matrix.h located the in the src directory and modify the following lines if needed:
 
 #define MAX_N    4096 // max number of input nodes in the graph. For example the cora dataset has 2708 nodes
+
 #define MAX_M    2048 // max number of features in each input node. For example the cora dataset has 1433 features per node;
+
 #define MAX_P    16  // number of hidden channels. 
+
 
 To enable the attention engine set GAT_ENABLE to 1 
 #define GAT_ENABLE 1 //implement support for GAT
 
-Now go to the hardware directory and perform simulation, C synthesis with this command:
+Now go to the hardware directory and perform simulation, C synthesis (optional cosimulation check the script cosim command) with this command:
 
 **vitis_hls -f ./script.tcl**
 
@@ -94,7 +97,7 @@ dataset_sel = "Cora"
 dataset = Planetoid(root="data/Planetoid", name=dataset_sel, split="full", transform=transform) 
 
 
-The software directory also contains the sgrace.py file that initializes and controls the accelerator.
+The software directory also contains the sgrace.py library file that initializes and controls the accelerator.
 
 
 The demo_sgrace script uses this library to offload the GNN execution and its location is indicated in the notebook with:
@@ -125,9 +128,13 @@ The model saved from training will be loaded and used and the accuracy should be
 
 To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
 
-Accelerator forward kernel n-layer time: 1.81174ms
+Accelerator forward kernel n-layer time: ~1.6 ms (end-to-end performance with 2 GCN layers and 1 Linear layer)
 
-This represents the execution time of the model in hardware from inputs to final classification. The other times refer to python execution time that are not hardware accelerated. 
+This represents the execution time of the model in hardware from inputs to final classification. The other times reported refer to python execution time that are not hardware accelerated. 
+
+Higher performance is possible with multithreaded configurations with up to 4 threads possible in Zynq device. The design is compatible with Versal/Alveo boards alghough further optimization work will be needed. A compiler is also under development to easy target other more complex models such as graph-transformers etc to the accelerator. 
+
+Contact as if you want to know more and explore possible collaborations.  
  
 
 
