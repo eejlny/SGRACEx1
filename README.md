@@ -131,7 +131,7 @@ Accelerator forward kernel n-layer time: ~1.6 ms (end-to-end performance with 2 
 
 This represents the execution time of the model in hardware from inputs to final classification. The other times reported refer to python execution time that are not hardware accelerated. 
 
-Higher performance is possible with multithreaded configurations with up to 4 threads possible in Zynq device. The design is compatible with Versal/Alveo boards alghough further optimization work will be needed. A compiler is also under development to easy target other more complex models such as graph-transformers etc to the accelerator. 
+Higher performance is possible with multithreaded configurations with up to 4 threads possible in Zynq device. The design is compatible with Versal/Alveo boards alghough further optimization work will be needed. A compiler is also under development to ease the implementation of more complex models such as graph-transformers etc with the accelerator. 
 
 Contact as if you want to know more and explore possible collaborations (jose.nunez.yanez@upm.es).  
  
