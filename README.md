@@ -146,7 +146,7 @@ Now you can open demo_sgrace.pynb and set training = 0 and run the script again.
 
 Note that this only changes the contents of model_buffer and the same FPGA bit file is used. In this case the changes in the program affect how streaming of data from one layer output to the next layer input is done to avoid interactions with DDR memory. In this inference only mode the model will be executed end-to-end on the FPGA fully using the streaming dataflow with a single invocation. The model weights saved from training will be loaded and the accuracy should be equivalent.
 
-The general SGRACE design principle is the same hardware can execute any model indepdently of the layer types or the number of layers. For example, the 8-bit configuration can execute any quantization target from 1 to 8 bit but more optimized hardware can be obtained if the implementation is done for a quantization target. 
+The general SGRACE design principle is that the same hardware can execute any model independently of the layer types or the number of layers. For example, the 8-bit configuration can execute any quantization target from 1 to 8 bit but more optimized hardware can be obtained if the implementation is done for lower quantization target. 
 
 To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
 
