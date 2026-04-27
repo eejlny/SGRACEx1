@@ -140,7 +140,7 @@ Now you can open demo_sgrace.pynb and set training = 0 and run the script again.
 
 <img width="699" height="311" alt="{A8A270CA-322D-4D5F-9610-69EC0F11E194}" src="https://github.com/user-attachments/assets/4fbfa86e-37d5-4b19-b9b2-3bfcdfe19c83" />
 
-In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation. The model weights saved from training will be loaded and used and the accuracy should be the same.
+Note that this only changes the contents of model_buffer and the same bit file os used. In this case the changes affect to the streaming of data from one layer output to the next layer input so no interactions to memory take place. In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation. The model weights saved from training will be loaded and used and the accuracy should be the same.
 
 To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
 
