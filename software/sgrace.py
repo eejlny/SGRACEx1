@@ -1352,10 +1352,15 @@ class FPYNQ_GAT(torch.autograd.Function):
 
             # ── attention gradient ────────────────────────────────────────────
             if compute_attention == 1:
-                # Efficient batched softmax Jacobian via:
-                #   soft_gradient = attentions * (softmax_out - (softmax_out * attentions).sum(-1, keepdim=True))
-                # This avoids allocating an (N×N) identity matrix entirely.
-                support     = torch.mm(weights_t, input_t)           # (out, N)
+                # support shape: (out, N) — projected features transposed.
+                # For GAT:         weights=(in,out), input=(N,in)  → W^T·X^T = (out,in)·(in,N) = (out,N)
+                # For Transformer: weights=W_V=(in,out), input=X_V=(N,out) → use input_t=(out,N) directly
+                if weights.shape[0] == input.shape[1]:
+                    # Standard GAT: weights is (in, out), input is (N, in)
+                    support = torch.mm(weights_t, input_t)           # (out, N)
+                else:
+                    # Transformer: input is already projected X_V=(N,out), use its transpose
+                    support = input_t                                 # (out, N)
                 softmax_out = torch.mm(grad_output, support)          # (N, N)
 
                 # Vectorised softmax Jacobian: s_ij * (delta_ij - s_ik) * g_kj
@@ -1370,10 +1375,13 @@ class FPYNQ_GAT(torch.autograd.Function):
                                             torch.zeros_like(soft_gradient))
 
                 # grad_attention = [W^T X^T soft_grad 1 ; 1^T soft_grad^T X W]
-                support1       = torch.mm(support, soft_gradient)          # (out, N)
-                grad_attention1 = support1.sum(dim=-1)                     # (out,)
-                support2        = torch.mm(soft_gradient, torch.mm(input, weights))
-                grad_attention2 = support2.sum(dim=0)                      # (out,)
+                support1        = torch.mm(support, soft_gradient)          # (out, N)
+                grad_attention1 = support1.sum(dim=-1)                      # (out,)
+                # For GAT: input=(N,in), weights=(in,out) → input@weights=(N,out)
+                # For Transformer: input=X_V=(N,out) already projected — use directly
+                xw = torch.mm(input, weights) if weights.shape[0] == input.shape[1] else input
+                support2        = torch.mm(soft_gradient, xw)               # (N, out)
+                grad_attention2 = support2.sum(dim=0)                       # (out,)
                 output_attention = torch.cat([grad_attention1,
                                               grad_attention2]).unsqueeze(1)
             else:
@@ -1381,11 +1389,18 @@ class FPYNQ_GAT(torch.autograd.Function):
                     weights.shape[1] * 2, 1, device=config.device)
 
             # ── grad_input and grad_weights ───────────────────────────────────
-            support = torch.mm(grad_output, weights_t)               # (N, in)
+            # For GAT:         weights=(in,out), grad w.r.t. input=(N,in) → grad_output @ W^T
+            # For Transformer: input=X_V=(N,out), grad w.r.t. X_V=(N,out) → no W multiplication
+            is_transformer = (weights.shape[0] != input.shape[1])
+
+            if not is_transformer:
+                support = torch.mm(grad_output, weights_t)           # (N, in)
+            else:
+                support = grad_output                                 # (N, out)
 
             if compute_attention == 1:
-                output_input   = torch.mm(attentions, support)
-                support        = torch.mm(attentions, grad_output)
+                output_input = torch.mm(attentions, support)
+                support      = torch.mm(attentions, grad_output)
             else:
                 if sage == 1:
                     output_input = (torch.mm(adj, support)
@@ -1396,7 +1411,11 @@ class FPYNQ_GAT(torch.autograd.Function):
                     output_input = torch.mm(adj, support)
                 support = torch.mm(adj, grad_output)
 
-            output_weights = torch.mm(input_t, support)              # (in, out)
+            if not is_transformer:
+                output_weights = torch.mm(input_t, support)          # (in, out)
+            else:
+                # W_V gradient is computed outside FPYNQ_GAT via autograd on X_V=input@W_V
+                output_weights = torch.zeros_like(weights)
 
             if sage == 1 or linear == 1:
                 grad_weights_linear = torch.mm(input_t, grad_output)
@@ -3643,7 +3662,7 @@ class SGRACEState:
             "GAT"         sage=0, linear=0, gat=1
             "SAGE"        sage=1, linear=1, gat=0
             "SAGEGAT"     sage=1, linear=1, gat=1
-            "GIN"         sage=1, linear=1, gat=0  (same ISA path as SAGE)
+            "GIN"         sage=0, linear=0, gat=0  (same ISA path as GCN; differs in adjacency)
             "TRANSFORMER" sage=0, linear=0, gat=1  (same ISA path as GAT)
             "LINEAR"      sage=0, linear=1, gat=0  (classifier linear layer)
 
@@ -3651,7 +3670,7 @@ class SGRACEState:
         self-loop branch (weight_linear) must be enabled alongside aggregation.
         """
         op = op.upper()
-        aliases = {"GIN": "SAGE", "TRANSFORMER": "GAT"}
+        aliases = {"TRANSFORMER": "GAT"}
         op = aliases.get(op, op)
         #              sage  linear  gat
         table = {
@@ -3659,6 +3678,7 @@ class SGRACEState:
             "GAT":     (0,   0,      1),
             "SAGE":    (1,   1,      0),
             "SAGEGAT": (1,   1,      1),
+            "GIN":     (0,   0,      0),
             "LINEAR":  (0,   1,      0),
         }
         if op not in table:
@@ -3865,18 +3885,21 @@ class SGRACEState:
             dense_fea = (byte >> 1) & 1
             dense_adj = (byte >> 0) & 1
 
-            # Derive operator name — check sage first since SAGE sets both
-            # sage=1 and linear=1; plain Linear has sage=0, linear=1
-            if sage and gat:
+            # Derive operator name from ISA bits.
+            # GCN and GIN share the same opcode (sage=0, linear=0, gat=0);
+            # they differ only in the adjacency matrix passed at runtime.
+            if sage and gat and linear:
                 op = "SAGEGAT"
+            elif sage and linear:
+                op = "SAGE"
             elif sage:
-                op = "SAGE/GIN"
+                op = "SAGE(no-linear)"
             elif gat:
                 op = "GAT/Transformer"
             elif linear:
                 op = "Linear"
             else:
-                op = "GCN"
+                op = "GCN/GIN"
 
             flags = []
             if relu:      flags.append("relu")
@@ -3972,7 +3995,7 @@ class _SGRACELayerBase(Module):
     def _fill_feature_buffer(self, input: torch.Tensor, dense: int):
         st = self.state
         if dense == 0:
-            coo = input.to_sparse()
+            coo = input.detach().to_sparse()
             nnz = len(coo.values())
             self.my_ip.register_map.nnz_fea1 = nnz
             st.rowPtr_fea_buffer[0:nnz]      = coo.indices()[0]
@@ -3980,16 +4003,18 @@ class _SGRACELayerBase(Module):
             st.values_fea_buffer[0:nnz]      = coo.values()
         else:
             xaux = (input.detach().numpy()
-                    if config.device == "cpu" else input)
+                    if config.device == "cpu" else input.detach())
             flat = xaux.reshape(1, xaux.shape[0] * xaux.shape[1])
             st.values_fea_buffer[0:flat.shape[1]] = flat
 
     def _fill_adj_buffer(self, edge_index, norm) -> int:
         st  = self.state
         nnz = len(norm)
-        st.rowPtr_adj_buffer[0:nnz]      = edge_index[0]
-        st.values_adj_buffer[0:nnz]      = norm
-        st.columnIndex_adj_buffer[0:nnz] = edge_index[1]
+        norm_d       = norm.detach() if isinstance(norm, torch.Tensor) else norm
+        edge_index_d = edge_index.detach() if isinstance(edge_index, torch.Tensor) else edge_index
+        st.rowPtr_adj_buffer[0:nnz]      = edge_index_d[0]
+        st.values_adj_buffer[0:nnz]      = norm_d
+        st.columnIndex_adj_buffer[0:nnz] = edge_index_d[1]
         self.my_ip.register_map.nnz_adj1 = nnz
         return nnz
 
@@ -4063,17 +4088,20 @@ class GINConv_SGRACE(_SGRACELayerBase):
                  bias: bool = False):
 
         self.compute_attention = 0
-        self.sage              = 1
+        self.sage              = 0
         self.linear            = 0
 
         super().__init__(in_features, out_features, state, bias)
 
+        # Single weight matrix shared by aggregation and self-loop.
+        # GIN uses the same GCN hardware path (sage=0, linear=0).
+        # The difference from GCN is purely in the adjacency matrix:
+        # raw un-normalised A is passed instead of D^{-1/2} A D^{-1/2}.
+        # The (1+ε)I self-loop is handled by the ε-scaled weight.
+        #   H = σ(((1+ε)I + A) H W)
         self.weight = Parameter(torch.FloatTensor(in_features, out_features))
         init.xavier_uniform_(self.weight.data, gain=1.414)
-
-        self.weight_linear = Parameter(
-            torch.FloatTensor(in_features, out_features))
-        init.xavier_uniform_(self.weight_linear.data, gain=1.414)
+        self.weight_linear = self.weight   # shared — not a separate parameter
 
         self.eps = (Parameter(torch.tensor([eps]))
                     if train_eps
@@ -4292,8 +4320,8 @@ class TransformerConv_SGRACE(_SGRACELayerBase):
             adj_dense  = adj.to_dense() if adj.is_sparse else adj
             attn       = self._exact_attention(input, adj_dense)
             attn_sp    = attn.to_sparse()
-            edge_index = attn_sp.indices()
-            norm       = attn_sp.values()
+            edge_index = attn_sp.indices().detach()
+            norm       = attn_sp.values().detach()
             adj        = attn.to_sparse()
 
         X_V = input @ self.W_V    # project to value space before DMA fill
@@ -4329,3 +4357,171 @@ class TransformerConv_SGRACE(_SGRACELayerBase):
                       if self.concat else output.mean(dim=1))
 
         return output
+
+
+# ---------------------------------------------------------------------------
+# k-th order adjacency utility
+# ---------------------------------------------------------------------------
+
+def kth_order_adj(edge_index, num_nodes, k, norm_each=True,
+                  exclusive=True, max_nnz=None):
+    """
+    Compute the k-th order adjacency matrix in COO sparse format.
+
+    Parameters
+    ----------
+    edge_index : (2, E) LongTensor — COO indices of the 1-hop adjacency.
+    num_nodes  : int              — number of nodes N.
+    k          : int              — order (1=standard, 2=2-hop, 3=3-hop).
+    norm_each  : bool             — re-normalise after each multiplication.
+    exclusive  : bool             — if True (default), return ONLY edges
+                                    between nodes exactly k hops apart,
+                                    removing any edge that also appears in
+                                    Aʲ for j < k.  This avoids redundancy
+                                    when stacking layers with different k.
+                                    If False, return all edges reachable
+                                    within k hops (cumulative).
+    max_nnz    : int or None      — raise an error if the result exceeds
+                                    this many non-zeros.  Use config.NNZ_adj
+                                    to enforce DMA buffer limits.
+
+    Returns
+    -------
+    edge_index_k : (2, E_k) LongTensor
+    norm_k       : (E_k,)   FloatTensor — normalised edge weights
+    """
+    import scipy.sparse as sp
+
+    # Build scipy CSR from edge_index
+    row = edge_index[0].numpy()
+    col = edge_index[1].numpy()
+    val = np.ones(len(row), dtype=np.float32)
+    A   = sp.csr_matrix((val, (row, col)), shape=(num_nodes, num_nodes))
+
+    def _sym_norm(M):
+        """Symmetric normalisation D^{-1/2} M D^{-1/2}."""
+        d     = np.array(M.sum(1)).flatten()
+        d_inv = np.where(d > 0, d ** -0.5, 0.0)
+        D_inv = sp.diags(d_inv)
+        return D_inv @ M @ D_inv
+
+    # Build binary (un-normalised) powers to track reachability
+    A_bin = A.astype(np.float32)
+    A_bin.data[:] = 1.0
+
+    # Cumulative reachability mask: union of A¹ … A^(k-1)
+    # used to subtract lower-order edges when exclusive=True
+    lower_mask = sp.csr_matrix((num_nodes, num_nodes), dtype=np.float32)
+
+    Ak_bin = A_bin.copy()
+    for hop in range(1, k):
+        lower_mask = lower_mask + Ak_bin
+        Ak_bin = (Ak_bin @ A_bin)
+        Ak_bin.data[:] = 1.0        # keep binary
+        Ak_bin.eliminate_zeros()
+
+    # Ak_bin now contains 1s wherever two nodes are reachable in exactly k steps
+    # (including shorter paths); lower_mask has 1s for all hops < k
+
+    # Now compute the normalised k-hop matrix
+    A_norm = _sym_norm(A)
+    Ak = A_norm.copy() if norm_each else A.astype(np.float32)
+    for _ in range(k - 1):
+        Ak = Ak @ (A_norm if norm_each else A_bin)
+        Ak.eliminate_zeros()
+
+    if not norm_each:
+        Ak = _sym_norm(Ak)
+
+    if exclusive and k > 1:
+        # Zero out entries that exist in any lower-order adjacency
+        lower_mask.eliminate_zeros()
+        # Convert lower_mask to boolean mask and apply
+        lower_bool = lower_mask.astype(bool)
+        Ak = Ak - Ak.multiply(lower_bool)
+        Ak.eliminate_zeros()
+
+    Ak = Ak.tocoo()
+
+    if max_nnz is not None and Ak.nnz > max_nnz:
+        raise ValueError(
+            f"k={k} order adjacency ({'exclusive' if exclusive else 'cumulative'}) "
+            f"has {Ak.nnz} non-zeros which exceeds max_nnz={max_nnz} "
+            "(config.NNZ_adj). Reduce k or increase NNZ_adj in config.py.")
+
+    edge_index_k = torch.tensor(
+        np.vstack([Ak.row, Ak.col]), dtype=torch.long)
+    norm_k = torch.tensor(Ak.data, dtype=torch.float32)
+    return edge_index_k, norm_k
+
+
+# ---------------------------------------------------------------------------
+# HighOrderGATConv_SGRACE  — GAT/Transformer with k-th order adjacency
+# ---------------------------------------------------------------------------
+
+class HighOrderGATConv_SGRACE(GATConv_SGRACE):
+    """
+    GAT convolution using the k-th order adjacency matrix.
+
+    This layer precomputes Aᵏ (k-hop neighbourhood) once on the first
+    forward call and caches it.  The hardware sees a standard (denser)
+    sparse graph and runs the same GAT kernel — no new hardware instructions
+    are needed.
+
+    For k=1 this is identical to GATConv_SGRACE.
+    For k=2 each node attends to all 2-hop neighbours.
+    For k=3 each node attends to all 3-hop neighbours.
+
+    Parameters
+    ----------
+    in_features, out_features, state : same as GATConv_SGRACE
+    k          : int  — adjacency order (default 2)
+    norm_each  : bool — re-normalise after each hop (default True)
+    max_nnz    : int  — buffer overflow guard (default config.NNZ_adj)
+    All other kwargs forwarded to GATConv_SGRACE.
+    """
+
+    def __init__(self, in_features: int, out_features: int,
+                 state: SGRACEState,
+                 k: int = 2,
+                 norm_each: bool = True,
+                 exclusive: bool = True,
+                 max_nnz: int = None,
+                 **kwargs):
+        super().__init__(state, in_features, out_features, **kwargs)
+        self.k          = k
+        self.norm_each  = norm_each
+        self.exclusive  = exclusive
+        self.max_nnz    = max_nnz if max_nnz is not None else config.NNZ_adj
+        # Cache: keyed by (num_nodes, edge_index hash) → (edge_index_k, norm_k)
+        self._adj_cache = {}
+
+    def _get_kth_adj(self, edge_index, num_nodes):
+        """Return cached or freshly computed k-th order adjacency."""
+        key = (num_nodes, edge_index.data_ptr(), self.exclusive)
+        if key not in self._adj_cache:
+            mode = "exclusive" if self.exclusive else "cumulative"
+            print(f"HighOrderGATConv_SGRACE: computing A^{self.k} ({mode}) "
+                  f"(N={num_nodes}, 1-hop E={edge_index.shape[1]})...")
+            ei_k, norm_k = kth_order_adj(
+                edge_index, num_nodes, self.k,
+                norm_each=self.norm_each,
+                exclusive=self.exclusive,
+                max_nnz=self.max_nnz)
+            self._adj_cache[key] = (ei_k, norm_k)
+            print(f"  Done: {self.k}-hop E={ei_k.shape[1]}")
+        return self._adj_cache[key]
+
+    def forward(self, stream, dense, relu, input,
+                edge_index, norm, adj,
+                srelu, weights_l2, weights_l3, weights_l4,
+                attention_l2, attention_l3):
+        # Replace edge_index/norm/adj with k-th order versions
+        num_nodes       = input.size(0)
+        ei_k, norm_k    = self._get_kth_adj(edge_index, num_nodes)
+        adj_k           = torch.sparse_coo_tensor(ei_k, norm_k)
+        return super().forward(
+            stream, dense, relu, input,
+            ei_k, norm_k, adj_k,
+            srelu, weights_l2, weights_l3, weights_l4,
+            attention_l2, attention_l3)
