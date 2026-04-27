@@ -136,9 +136,11 @@ model_buffer contains the SGRACE dataflow configuration descriptors and it is si
 
 After the training run the accuracy reached will the around 0.852 with the cora dataset with 16 hidden channels. You can experiment with wider configurations by simply replacing #define MAX_P    16  with 64, for example. You can also support larger graphs by modifying MAX_N and MAX_M. As expected more channels and larger graphs have a significant impact on complexity specially on BRAM usage. You can reduce the impact on complexity by reducing the number of bits used to store the different parameters.  
 
-Now you can open demo_sgrace.pynb and set training = 0 and run the script again.
+Now you can open demo_sgrace.pynb and set training = 0 and run the script again. The SGRACE compiler generates new instructions to change the dataflow configuration:
 
-In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation. The model saved from training will be loaded and used and the accuracy should be the same.
+<img width="699" height="311" alt="{A8A270CA-322D-4D5F-9610-69EC0F11E194}" src="https://github.com/user-attachments/assets/4fbfa86e-37d5-4b19-b9b2-3bfcdfe19c83" />
+
+In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation. The model weights saved from training will be loaded and used and the accuracy should be the same.
 
 To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
 
