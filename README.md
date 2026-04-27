@@ -91,47 +91,74 @@ After completion all results are available under the new project name directory.
 The software directory contains python scripts that can be used to test the design in the PYNQ FPGA board
 and measure performance. 
 
-Open demo_sgrace.py, make sure that dataset is cora.
+Open notebook demo_sgrace.pynb, make sure that dataset is cora.
 dataset_sel = "Cora"
 dataset = Planetoid(root="data/Planetoid", name=dataset_sel, split="full", transform=transform) 
 
 
-The software directory also contains the sgrace.py library file that initializes and controls the accelerator.
+The software directory also contains the sgrace.py/config.py library files that compiles GNN models for the accelerator, initializes and controls the accelerator. 
 
+Verify that config.py uses a standard 8-bit quantization mode for linear and graph layers:
 
-The demo_sgrace script uses this library to offload the GNN execution and its location is indicated in the notebook with:
+w_qbits = 8
+w_qbitsl = 8
+
+sgrace.py will use these values to set up all the quantization constants.
+
+Other important parameters present in config.py include:
+
+hidden_channels = 64 #how many hidden channels. 
+instant_layer_count = 1 #how many layers to process in each SGRACE (core) hardware call.
+total_layer_count = 3 #how many total SGRACE layers.
+
+The demo_sgrace notebook uses sgrace.py/config.py files to offload the GNN execution and its location is indicated in the notebook with:
 
 sys.path.insert(1, '/home/xilinx/jupyter_notebooks/sgrace_lib')
 
 Make sure this location matches your PYNQ system and store sgrace.py and config.py in that location.
 
-Make sure training = 1 in demo_sgrace.py so the hardware will be used in training mode.
+Make sure training = 1 in demo_sgrace.pynb so the hardware will be used in training mode.
 
-
-On the board prepare the PYNQ environment with:
+If you are using a py file instead of the notebook pynb On the board prepare the PYNQ environment with:
 
 sudo su
 source /etc/profile.d/pynq_venv.sh
 source /etc/profile.d/xrt_setup.sh
 
-Launch execution with:
+in demo_sgrace.pynb select your predefined model in cell 1. For example pynq_class = "GCN" will instantiate a GCN model with two gcn layers and one fully connected layer.
 
-python3 demo_sgrace.py
+Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the following information is printed:
+
+GCN_PYNQ INIT
+Model program updated: custom
+model_buffer  (total_layer_count=3, instant_layer_count=1)
+  Slot   Byte     Operator           Flags
+  ------ -------- ------------------ ------------------------------
+  [0]    0x10     GCN                relu
+  [1]    0x02     GCN                dense_fea
+  [2]    0x42     Linear             dense_fea
+GCN_PYNQ(
+  (conv1): GCNConv_SGRACE (1433 -> 64)
+  (conv2): GCNConv_SGRACE (64 -> 64)
+  (reluh): Relu_SGRACE()
+  (lin): Linear_SGRACE (64 -> 7)
+)
+
+model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatilly these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler. 
 
 After the training run the accuracy reached will the around 0.852 with the cora dataset with 16 hidden channels. You can experiment with wider configurations by simply replacing #define MAX_P    16  with 64, for example. You can also support larger graphs by modifying MAX_N and MAX_M. As expected more channels and larger graphs have a significant impact on complexity specially on BRAM usage. You can reduce the impact on complexity by reducing the number of bits used to store the different parameters.  
 
-Now you can open demo_sgrace.py and set training = 0 and run the script again.
+Now you can open demo_sgrace.pynb and set training = 0 and run the script again.
 
-In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation.
-The model saved from training will be loaded and used and the accuracy should be the same.
+In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation. The model saved from training will be loaded and used and the accuracy should be the same.
 
 To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
 
-Accelerator forward kernel n-layer time: ~1.6 ms (end-to-end performance with 2 GCN layers and 1 Linear layer)
+Accelerator forward kernel n-layer time: ~1.6 ms (end-to-end performance with 2 GCN layers and 1 Linear layer) an 16 channels.
 
 This represents the execution time of the model in hardware from inputs to final classification. The other times reported refer to python execution time that are not hardware accelerated. 
 
-Higher performance is possible with multithreaded configurations with up to 4 threads possible in Zynq device. The design is compatible with Versal/Alveo boards alghough further optimization work will be needed. A compiler is also under development to ease the implementation of more complex models such as graph-transformers etc with the accelerator. 
+Higher performance is possible with multithreaded configurations with up to 4 threads possible in Zynq device. The design is compatible with Versal/Alveo boards although further optimization work will be needed. The sgrace compiler is critical to ease the implementation of more complex models such as graph-transformers etc with the accelerator. Current work is targeting how to extend the framework to these layer types. 
 
 Contact as if you want to know more and explore possible collaborations (jose.nunez.yanez@upm.es).  
  

@@ -339,13 +339,14 @@ class FPYNQ_GAT(torch.autograd.Function):
 
 
     @staticmethod
-    def forward(ctx,my_ip, self,adj,nnz_adj,input, weights,weights_linear,weights_l2,weights_l3,attention,out_features,dropout,relu):
+    def forward(ctx,my_ip, self,adj,nnz_adj,input, weights,weights_linear,weights_l2,weights_l3,attention,attention_l2,attention_l3,out_features,dropout,relu):
         """
         In the forward pass we receive a Tensor containing the input and return
         a Tensor containing the output. ctx is a context object that can be used
         to stash information for backward computation. You can cache arbitrary
         objects for use in the backward pass using the ctx.save_for_backward method.
         """
+        st = self.state
         def prepare_attentional_mechanism_input(Wh,attention,out_features):
           Wh1 = torch.matmul(Wh, attention[:out_features, :])
           Wh2 = torch.matmul(Wh, attention[out_features:, :])
@@ -364,51 +365,50 @@ class FPYNQ_GAT(torch.autograd.Function):
          if (config.profiling == 1):
           rmult = time.time()
 
-         global layern
-         #print("deq_o and active layer")
-         #print(deq_o)
-         #print(layern)
+         #print("st.deq_o and active layer")
+         #print(st.deq_o)
+         #print(st.layern)
 
 
 
-         #if (layern == 1):
-          #my_ip.register_map.scale_fea = scale_fea #2 #scale fea
+         #if (st.layern == 1):
+          #my_ip.register_map.scale_fea = st.scale_fea #2 #scale fea
 
-          #int32bits = np.asarray(deq_o, dtype=np.float32).view(np.int32).item() 
+          #int32bits = np.asarray(st.deq_o, dtype=np.float32).view(np.int32).item() 
           #my_ip.register_map.deq_factor = int32bits
           #deq_factor = int32bits
 
-          #qsf = 1/f_s
+          #qsf = 1/st.f_s
           #int32bits = np.asarray(qsf, dtype=np.float32).view(np.int32).item() 
           #my_ip.register_map.quantization_scale_fea = int32bits
         
         
-          #qsw = 1/w_s
+          #qsw = 1/st.w_s
           #int32bits = np.asarray(qsw, dtype=np.float32).view(np.int32).item() 
           #my_ip.register_map.quantization_scale_w = int32bits
 
    
 
-         #elif (layern == 2):
-          #my_ip.register_map.scale_fea = scale_fea2 #2 #scale fea
-          #int32bits = np.asarray(deq_o2, dtype=np.float32).view(np.int32).item() 
+         #elif (st.layern == 2):
+          #my_ip.register_map.scale_fea = st.scale_fea2 #2 #scale fea
+          #int32bits = np.asarray(st.deq_o2, dtype=np.float32).view(np.int32).item() 
           #deq_factor = int32bits
           #my_ip.register_map.deq_factor = int32bits
-          #qsf = 1/f_s2
+          #qsf = 1/st.f_s2
           #int32bits = np.asarray(qsf, dtype=np.float32).view(np.int32).item() 
           #my_ip.register_map.quantization_scale_fea = int32bits
-          #qsw = 1/w_s2
+          #qsw = 1/st.w_s2
           #int32bits = np.asarray(qsw, dtype=np.float32).view(np.int32).item() 
           #my_ip.register_map.quantization_scale_w = int32bits   
     
          #else:
-          #int32bits = np.asarray(deq_ol, dtype=np.float32).view(np.int32).item() 
+          #int32bits = np.asarray(st.deq_ol, dtype=np.float32).view(np.int32).item() 
           #deq_factor = int32bits
           #my_ip.register_map.deq_factor = int32bits
-          #qsf = 1/f_sl
+          #qsf = 1/st.f_sl
           #int32bits = np.asarray(qsf, dtype=np.float32).view(np.int32).item() 
           #my_ip.register_map.quantization_scale_fea = int32bits
-          #qsw = 1/w_sl
+          #qsw = 1/st.w_sl
           #int32bits = np.asarray(qsw, dtype=np.float32).view(np.int32).item() 
           #my_ip.register_map.quantization_scale_w = int32bits 
 
@@ -419,12 +419,12 @@ class FPYNQ_GAT(torch.autograd.Function):
          #print("qsw")
          #print(qsw)  
             
-         qsa = 1/a_s
+         qsa = 1/st.a_s
 
          #print("quantization_scale_adj")
          #print(qsa)
-         #print("a_s")
-         #print(a_s)
+         #print("st.a_s")
+         #print(st.a_s)
          int32bits = np.asarray(qsa, dtype=np.float32).view(np.int32).item() 
          my_ip.register_map.quantization_scale_adj = int32bits
 
@@ -432,19 +432,19 @@ class FPYNQ_GAT(torch.autograd.Function):
          
          if(config.instant_layer_count==1):
 
-          my_ip.register_map.rowPtr_adj1_offset_1 = rowPtr_adj_buffer.physical_address 
-          my_ip.register_map.rowPtr_adj2_offset_1 = rowPtr_adj_buffer.physical_address 
-          my_ip.register_map.rowPtr_adj3_offset_1 = rowPtr_adj_buffer.physical_address
-          my_ip.register_map.rowPtr_adj4_offset_1 = rowPtr_adj_buffer.physical_address
+          my_ip.register_map.rowPtr_adj1_offset_1 = st.rowPtr_adj_buffer.physical_address 
+          my_ip.register_map.rowPtr_adj2_offset_1 = st.rowPtr_adj_buffer.physical_address 
+          my_ip.register_map.rowPtr_adj3_offset_1 = st.rowPtr_adj_buffer.physical_address
+          my_ip.register_map.rowPtr_adj4_offset_1 = st.rowPtr_adj_buffer.physical_address
 
-          my_ip.register_map.columnIndex_adj1_offset_1 = columnIndex_adj_buffer.physical_address 
-          my_ip.register_map.columnIndex_adj2_offset_1 = columnIndex_adj_buffer.physical_address
-          my_ip.register_map.columnIndex_adj3_offset_1 = columnIndex_adj_buffer.physical_address 
-          my_ip.register_map.columnIndex_adj4_offset_1 = columnIndex_adj_buffer.physical_address 
-          my_ip.register_map.values_adj1_offset_1 = values_adj_buffer.physical_address
-          my_ip.register_map.values_adj2_offset_1 = values_adj_buffer.physical_address
-          my_ip.register_map.values_adj3_offset_1 = values_adj_buffer.physical_address
-          my_ip.register_map.values_adj4_offset_1 = values_adj_buffer.physical_address
+          my_ip.register_map.columnIndex_adj1_offset_1 = st.columnIndex_adj_buffer.physical_address 
+          my_ip.register_map.columnIndex_adj2_offset_1 = st.columnIndex_adj_buffer.physical_address
+          my_ip.register_map.columnIndex_adj3_offset_1 = st.columnIndex_adj_buffer.physical_address 
+          my_ip.register_map.columnIndex_adj4_offset_1 = st.columnIndex_adj_buffer.physical_address 
+          my_ip.register_map.values_adj1_offset_1 = st.values_adj_buffer.physical_address
+          my_ip.register_map.values_adj2_offset_1 = st.values_adj_buffer.physical_address
+          my_ip.register_map.values_adj3_offset_1 = st.values_adj_buffer.physical_address
+          my_ip.register_map.values_adj4_offset_1 = st.values_adj_buffer.physical_address
 
 
           my_ip.register_map.N_adj=input.shape[0]
@@ -459,47 +459,47 @@ class FPYNQ_GAT(torch.autograd.Function):
         
         
        
-          my_ip.register_map.E1_offset_1 = E_buffer.physical_address
-          my_ip.register_map.S1_offset_1 = S_buffer.physical_address
+          my_ip.register_map.E1_offset_1 = st.E_buffer.physical_address
+          my_ip.register_map.S1_offset_1 = st.S_buffer.physical_address
    
-          my_ip.register_map.D1_offset_1 = D_buffer.physical_address
-          my_ip.register_map.D2_offset_1 = D_buffer.physical_address
-          my_ip.register_map.D3_offset_1 = D_buffer.physical_address
-          my_ip.register_map.D4_offset_1 = D_buffer.physical_address
+          my_ip.register_map.D1_offset_1 = st.D_buffer.physical_address
+          my_ip.register_map.D2_offset_1 = st.D_buffer.physical_address
+          my_ip.register_map.D3_offset_1 = st.D_buffer.physical_address
+          my_ip.register_map.D4_offset_1 = st.D_buffer.physical_address
 
-          #print('use rowPtr_fea_buffer.physical_address')
-          #print(rowPtr_fea_buffer.physical_address)
+          #print('use st.rowPtr_fea_buffer.physical_address')
+          #print(st.rowPtr_fea_buffer.physical_address)
   
-          my_ip.register_map.rowPtr_fea1_offset_1 = rowPtr_fea_buffer.physical_address
-          my_ip.register_map.rowPtr_fea2_offset_1 = rowPtr_fea_buffer.physical_address
-          my_ip.register_map.rowPtr_fea3_offset_1 = rowPtr_fea_buffer.physical_address
-          my_ip.register_map.rowPtr_fea4_offset_1 = rowPtr_fea_buffer.physical_address
+          my_ip.register_map.rowPtr_fea1_offset_1 = st.rowPtr_fea_buffer.physical_address
+          my_ip.register_map.rowPtr_fea2_offset_1 = st.rowPtr_fea_buffer.physical_address
+          my_ip.register_map.rowPtr_fea3_offset_1 = st.rowPtr_fea_buffer.physical_address
+          my_ip.register_map.rowPtr_fea4_offset_1 = st.rowPtr_fea_buffer.physical_address
 
-          my_ip.register_map.columnIndex_fea1_offset_1 =columnIndex_fea_buffer.physical_address
-          my_ip.register_map.columnIndex_fea2_offset_1 =columnIndex_fea_buffer.physical_address 
-          my_ip.register_map.columnIndex_fea3_offset_1 =columnIndex_fea_buffer.physical_address 
-          my_ip.register_map.columnIndex_fea4_offset_1 =columnIndex_fea_buffer.physical_address 
-          my_ip.register_map.values_fea1_offset_1 = values_fea_buffer.physical_address
-          my_ip.register_map.values_fea2_offset_1 = values_fea_buffer.physical_address
-          my_ip.register_map.values_fea3_offset_1 = values_fea_buffer.physical_address
-          my_ip.register_map.values_fea4_offset_1 = values_fea_buffer.physical_address
+          my_ip.register_map.columnIndex_fea1_offset_1 =st.columnIndex_fea_buffer.physical_address
+          my_ip.register_map.columnIndex_fea2_offset_1 =st.columnIndex_fea_buffer.physical_address 
+          my_ip.register_map.columnIndex_fea3_offset_1 =st.columnIndex_fea_buffer.physical_address 
+          my_ip.register_map.columnIndex_fea4_offset_1 =st.columnIndex_fea_buffer.physical_address 
+          my_ip.register_map.values_fea1_offset_1 = st.values_fea_buffer.physical_address
+          my_ip.register_map.values_fea2_offset_1 = st.values_fea_buffer.physical_address
+          my_ip.register_map.values_fea3_offset_1 = st.values_fea_buffer.physical_address
+          my_ip.register_map.values_fea4_offset_1 = st.values_fea_buffer.physical_address
          else:
-          #print('layern')
-          #print(layern)
-          if(layern==1):
-           my_ip.register_map.rowPtr_adj1_offset_1 = rowPtr_adj_buffer.physical_address 
-           my_ip.register_map.rowPtr_adj2_offset_1 = rowPtr_adj_buffer.physical_address 
-           my_ip.register_map.rowPtr_adj3_offset_1 = rowPtr_adj_buffer.physical_address
-           my_ip.register_map.rowPtr_adj4_offset_1 = rowPtr_adj_buffer.physical_address
+          #print('st.layern')
+          #print(st.layern)
+          if(st.layern==1):
+           my_ip.register_map.rowPtr_adj1_offset_1 = st.rowPtr_adj_buffer.physical_address 
+           my_ip.register_map.rowPtr_adj2_offset_1 = st.rowPtr_adj_buffer.physical_address 
+           my_ip.register_map.rowPtr_adj3_offset_1 = st.rowPtr_adj_buffer.physical_address
+           my_ip.register_map.rowPtr_adj4_offset_1 = st.rowPtr_adj_buffer.physical_address
 
-           my_ip.register_map.columnIndex_adj1_offset_1 = columnIndex_adj_buffer.physical_address 
-           my_ip.register_map.columnIndex_adj2_offset_1 = columnIndex_adj_buffer.physical_address
-           my_ip.register_map.columnIndex_adj3_offset_1 = columnIndex_adj_buffer.physical_address 
-           my_ip.register_map.columnIndex_adj4_offset_1 = columnIndex_adj_buffer.physical_address 
-           my_ip.register_map.values_adj1_offset_1 = values_adj_buffer.physical_address
-           my_ip.register_map.values_adj2_offset_1 = values_adj_buffer.physical_address
-           my_ip.register_map.values_adj3_offset_1 = values_adj_buffer.physical_address
-           my_ip.register_map.values_adj4_offset_1 = values_adj_buffer.physical_address
+           my_ip.register_map.columnIndex_adj1_offset_1 = st.columnIndex_adj_buffer.physical_address 
+           my_ip.register_map.columnIndex_adj2_offset_1 = st.columnIndex_adj_buffer.physical_address
+           my_ip.register_map.columnIndex_adj3_offset_1 = st.columnIndex_adj_buffer.physical_address 
+           my_ip.register_map.columnIndex_adj4_offset_1 = st.columnIndex_adj_buffer.physical_address 
+           my_ip.register_map.values_adj1_offset_1 = st.values_adj_buffer.physical_address
+           my_ip.register_map.values_adj2_offset_1 = st.values_adj_buffer.physical_address
+           my_ip.register_map.values_adj3_offset_1 = st.values_adj_buffer.physical_address
+           my_ip.register_map.values_adj4_offset_1 = st.values_adj_buffer.physical_address
 
 
            my_ip.register_map.N_adj=input.shape[0]
@@ -514,37 +514,37 @@ class FPYNQ_GAT(torch.autograd.Function):
         
         
        
-           my_ip.register_map.E1_offset_1 = E_buffer.physical_address
-           my_ip.register_map.S1_offset_1 = S_buffer.physical_address
+           my_ip.register_map.E1_offset_1 = st.E_buffer.physical_address
+           my_ip.register_map.S1_offset_1 = st.S_buffer.physical_address
    
-           my_ip.register_map.D1_offset_1 = D_buffer.physical_address
-           my_ip.register_map.D2_offset_1 = D_buffer.physical_address
-           my_ip.register_map.D3_offset_1 = D_buffer.physical_address
-           my_ip.register_map.D4_offset_1 = D_buffer.physical_address
+           my_ip.register_map.D1_offset_1 = st.D_buffer.physical_address
+           my_ip.register_map.D2_offset_1 = st.D_buffer.physical_address
+           my_ip.register_map.D3_offset_1 = st.D_buffer.physical_address
+           my_ip.register_map.D4_offset_1 = st.D_buffer.physical_address
 
-           #print('use rowPtr_fea_buffer.physical_address')
-           #print(rowPtr_fea_buffer.physical_address)
+           #print('use st.rowPtr_fea_buffer.physical_address')
+           #print(st.rowPtr_fea_buffer.physical_address)
   
-           my_ip.register_map.rowPtr_fea1_offset_1 = rowPtr_fea_buffer.physical_address
-           my_ip.register_map.rowPtr_fea2_offset_1 = rowPtr_fea_buffer.physical_address
-           my_ip.register_map.rowPtr_fea3_offset_1 = rowPtr_fea_buffer.physical_address
-           my_ip.register_map.rowPtr_fea4_offset_1 = rowPtr_fea_buffer.physical_address
+           my_ip.register_map.rowPtr_fea1_offset_1 = st.rowPtr_fea_buffer.physical_address
+           my_ip.register_map.rowPtr_fea2_offset_1 = st.rowPtr_fea_buffer.physical_address
+           my_ip.register_map.rowPtr_fea3_offset_1 = st.rowPtr_fea_buffer.physical_address
+           my_ip.register_map.rowPtr_fea4_offset_1 = st.rowPtr_fea_buffer.physical_address
 
-           my_ip.register_map.columnIndex_fea1_offset_1 =columnIndex_fea_buffer.physical_address
-           my_ip.register_map.columnIndex_fea2_offset_1 =columnIndex_fea_buffer.physical_address 
-           my_ip.register_map.columnIndex_fea3_offset_1 =columnIndex_fea_buffer.physical_address 
-           my_ip.register_map.columnIndex_fea4_offset_1 =columnIndex_fea_buffer.physical_address 
-           my_ip.register_map.values_fea1_offset_1 = values_fea_buffer.physical_address
-           my_ip.register_map.values_fea2_offset_1 = values_fea_buffer.physical_address
-           my_ip.register_map.values_fea3_offset_1 = values_fea_buffer.physical_address
-           my_ip.register_map.values_fea4_offset_1 = values_fea_buffer.physical_address
+           my_ip.register_map.columnIndex_fea1_offset_1 =st.columnIndex_fea_buffer.physical_address
+           my_ip.register_map.columnIndex_fea2_offset_1 =st.columnIndex_fea_buffer.physical_address 
+           my_ip.register_map.columnIndex_fea3_offset_1 =st.columnIndex_fea_buffer.physical_address 
+           my_ip.register_map.columnIndex_fea4_offset_1 =st.columnIndex_fea_buffer.physical_address 
+           my_ip.register_map.values_fea1_offset_1 = st.values_fea_buffer.physical_address
+           my_ip.register_map.values_fea2_offset_1 = st.values_fea_buffer.physical_address
+           my_ip.register_map.values_fea3_offset_1 = st.values_fea_buffer.physical_address
+           my_ip.register_map.values_fea4_offset_1 = st.values_fea_buffer.physical_address
 
 
            if (config.profiling == 1):   
             print('Register time: {:.5f}ms'.format(1000/1*(time.time() - rmult)))
         
-           my_ip.register_map.B_offset_1 = B_buffer.physical_address
-           my_ip.register_map.B2_offset_1 = B2_buffer.physical_address
+           my_ip.register_map.B_offset_1 = st.B_buffer.physical_address
+           my_ip.register_map.B2_offset_1 = st.B2_buffer.physical_address
          
          if (config.profiling == 1):
           amult = time.time()
@@ -555,20 +555,23 @@ class FPYNQ_GAT(torch.autograd.Function):
          support_l3 = torch.transpose(weights_l3,0,1)
          #support_l4 = torch.transpose(weights_l4,0,1)
          #print(weights_l2.shape)
-         #B_buffer[0:(weights.shape[0]*weights.shape[1])] = torch.transpose(weights,0,1).reshape(1, (weights.shape[0]*weights.shape[1]))
+         #st.B_buffer[0:(weights.shape[0]*weights.shape[1])] = torch.transpose(weights,0,1).reshape(1, (weights.shape[0]*weights.shape[1]))
          if (config.profiling == 1):   
           print('Transpose time: {:.5f}ms'.format(1000/1*(time.time() - amult)))
   
         
          if(config.min_output == 0):
-          print('values_fea_buffer')
-          print(values_fea_buffer[0:100])
-          print('columnIndex_fea_buffer')
-          print(columnIndex_fea_buffer[0:100])
-          print('rowPtr_fea_buffer')
-          print(rowPtr_fea_buffer[0:100])
+          print('st.values_fea_buffer')
+          print(st.values_fea_buffer[0:100])
+          print('st.columnIndex_fea_buffer')
+          print(st.columnIndex_fea_buffer[0:100])
+          print('st.rowPtr_fea_buffer')
+          print(st.rowPtr_fea_buffer[0:100])
          
          attention_q=attention.reshape(1,(attention.shape[0]*attention.shape[1]))
+         #attention_q_l2=attention_l2.reshape(1,(attention.shape[0]*attention.shape[1]))
+         #attention_q_l3=attention_l3.reshape(1,(attention.shape[0]*attention.shape[1]))
+
          support_pynq = support.data.numpy() #OJO USE TRANSPOSE
          support_pynq_linear = support_linear.data.numpy()
          support_pynq_l2 = support_l2.data.numpy() #OJO USE TRANSPOSE
@@ -579,7 +582,7 @@ class FPYNQ_GAT(torch.autograd.Function):
     
           
          if(config.show_max_min==1):
-          print("active layer: ",layern)   
+          print("active layer: ",st.layern)   
           print("max/min graph weights")
           print(np.max(support_pynq))
           print(np.min(support_pynq))
@@ -618,7 +621,7 @@ class FPYNQ_GAT(torch.autograd.Function):
 
 
 
-         if(config.write_file == 1 and layern == 3):   
+         if(config.write_file == 1 and st.layern == 3):   
               support_pynq_linear_q_t = np.transpose(support_pynq_linear_q)
               df = pd.DataFrame(support_pynq_linear_q_t) #convert to a dataframe
               df.to_csv("./linear_weights.txt",index=False,header=False) #save to file    
@@ -632,40 +635,48 @@ class FPYNQ_GAT(torch.autograd.Function):
     
          if(config.core_count == 1):
            if(config.instant_layer_count == 1):
-             B_buffer[0:(weights.shape[0]*weights.shape[1])] = support_pynq_q.astype(config.float_type)
-             B2_buffer[0:(support_pynq_linear_q.shape[0]*support_pynq_linear_q.shape[1])] = support_pynq_linear_q.astype(config.float_type)
-              #print("B2_buffer")
-              #print(B2_buffer[0:10])
+             st.B_buffer[0:(weights.shape[0]*weights.shape[1])] = support_pynq_q.astype(config.float_type)
+             st.B2_buffer[0:(support_pynq_linear_q.shape[0]*support_pynq_linear_q.shape[1])] = support_pynq_linear_q.astype(config.float_type)
+              #print("st.B2_buffer")
+              #print(st.B2_buffer[0:10])
            else:
-            if(layern==1):
-             B_buffer[0:(weights.shape[0]*weights.shape[1])] = support_pynq_q.astype(config.float_type)
-             global weight_shift
+            if(st.layern==1):
+             st.B_buffer[0:(weights.shape[0]*weights.shape[1])] = support_pynq_q.astype(config.float_type)
              support_pynq_q_l2 = support_pynq_q_l2.reshape(1, (weights_l2.shape[0]*weights_l2.shape[1]))
-             weight_shift = (weights.shape[0]*weights.shape[1])
-             B_buffer[weight_shift:(weight_shift+weights_l2.shape[0]*weights_l2.shape[1])] = support_pynq_q_l2.astype(config.float_type)
+             st.weight_shift = (weights.shape[0]*weights.shape[1])
+             st.B_buffer[st.weight_shift:(st.weight_shift+weights_l2.shape[0]*weights_l2.shape[1])] = support_pynq_q_l2.astype(config.float_type)
              support_pynq_q_l3 = support_pynq_q_l3.reshape(1, (weights_l3.shape[0]*weights_l3.shape[1]))
-             weight_shift = weight_shift+(weights_l2.shape[0]*weights_l2.shape[1])
-             #B_buffer[weight_shift:(weight_shift+weights_l3.shape[0]*weights_l3.shape[1])] = support_pynq_q_l3.astype(config.float_type)
+             st.weight_shift = st.weight_shift+(weights_l2.shape[0]*weights_l2.shape[1])
+             #st.B_buffer[st.weight_shift:(st.weight_shift+weights_l3.shape[0]*weights_l3.shape[1])] = support_pynq_q_l3.astype(config.float_type)
              #print("pynq l3")
-             B2_buffer[weight_shift:(weight_shift+weights_l3.shape[0]*weights_l3.shape[1])] = support_pynq_q_l3.astype(config.float_type)
+             st.B2_buffer[st.weight_shift:(st.weight_shift+weights_l3.shape[0]*weights_l3.shape[1])] = support_pynq_q_l3.astype(config.float_type)
              #support_pynq_q_l4 = support_pynq_q_l4.reshape(1, (weights_l4.shape[0]*weights_l4.shape[1]))
-             #weight_shift = weight_shift+(weights_l3.shape[0]*weights_l3.shape[1])
+             #st.weight_shift = st.weight_shift+(weights_l3.shape[0]*weights_l3.shape[1])
              #print("pynq l4")
              #print(support_pynq_q_l4[0:10])
-             #B2_buffer[weight_shift:(weight_shift+weights_l4.shape[0]*weights_l4.shape[1])] = support_pynq_q_l4.astype(config.float_type)
-             #B2_buffer[0:(weights_l3.shape[0]*weights_l3.shape[1])] = support_pynq_q_l3.astype(config.float_type)
+             #st.B2_buffer[st.weight_shift:(st.weight_shift+weights_l4.shape[0]*weights_l4.shape[1])] = support_pynq_q_l4.astype(config.float_type)
+             #st.B2_buffer[0:(weights_l3.shape[0]*weights_l3.shape[1])] = support_pynq_q_l3.astype(config.float_type)
 
          if (config.min_output == 0):
          #if (self.linear == 1):
            print("B_Buffer")
-           print(B_buffer[0:10])
+           print(st.B_buffer[0:10])
          #print("B2_Buffer linear")
-         #print(B2_buffer[0:32])
+         #print(st.B2_buffer[0:32])
 
          if(self.compute_attention == 1):
-          attention_q = attention_q.numpy()
-          attention_buffer[0:(attention.shape[0]*attention.shape[1])] = attention_q.astype(config.float_type)
-
+          if(config.instant_layer_count == 1):
+           attention_q = attention_q.numpy()
+           st.attention_buffer[0:(attention.shape[0]*attention.shape[1])] = attention_q.astype(config.float_type)
+          else:
+           if(st.layern==1):
+             attention_q = attention_q.numpy()
+             st.attention_buffer[0:(attention.shape[0]*attention.shape[1])] = attention_q.astype(config.float_type)
+             #global attention_shift
+             #attention_q_l2 = attention_q_l2.numpy();
+             #attention_shift = (attention.shape[0]*attention.shape[1])
+             #st.attention_buffer[attention_shift:(attention_shift+attention.shape[0]*weights_l2.shape[1])] = attention_q_l2.astype(config.float_type)
+           
          #if(config.show_max_min==1):
          # print("max/min quantized weights")
          # print(np.max(support_pynq_q))
@@ -674,18 +685,17 @@ class FPYNQ_GAT(torch.autograd.Function):
          #global B_size
          #B_size = (weights.shape[0]*weights.shape[1])
           
-         my_ip.register_map.quantized_multiplier = internal_quantization #apply internal quantization
+         my_ip.register_map.quantized_multiplier = st.internal_quantization #apply internal quantization
          
-         #print("layern")
-         #print(layern)
+         #print("st.layern")
+         #print(st.layern)
 
          if (config.profiling == 2):
           amult = time.time()
           for _ in range(1):
-           my_ip.register_map.CTRL.AP_START=1
-           kernel_done = my_ip.register_map.CTRL.AP_DONE
-           while kernel_done == 0:
-            kernel_done = my_ip.register_map.CTRL.AP_DONE
+           my_ip.register_map.CTRL.AP_START = 1
+           while my_ip.register_map.CTRL.AP_IDLE == 0:
+            pass
           dmult =  time.time()
          else:
           #print('config.instant_layer_count ',config.instant_layer_count)
@@ -694,16 +704,16 @@ class FPYNQ_GAT(torch.autograd.Function):
              #if (config.min_output == 0):
              #print('start core 1 to process 1 layer')
              #print('model buffer is')
-             #print(model_buffer[0])
-             #print(model_buffer[1])
+             #print(st.model_buffer[0])
+             #print(st.model_buffer[1])
              amult = time.time()
-             next_inst_addr = model_buffer.physical_address+(layern-1) 
-             next_P_w_addr = P_w_buffer.physical_address+(layern-1) 
-             next_quantization_scale_fea_addr = quantization_scale_fea_buffer.physical_address+4*(layern-1) 
-             next_quantization_scale_w_addr = quantization_scale_w_buffer.physical_address+4*(layern-1)
-             next_quantization_scale_l_addr = quantization_scale_l_buffer.physical_address+4*(layern-1)
-             next_scale_fea_addr = scale_fea_buffer.physical_address+(layern-1)
-             next_deq_factor_addr = deq_factor_buffer.physical_address+4*(layern-1)
+             next_inst_addr = st.model_buffer.physical_address+(st.layern-1) 
+             next_P_w_addr = st.P_w_buffer.physical_address+(st.layern-1) 
+             next_quantization_scale_fea_addr = st.quantization_scale_fea_buffer.physical_address+4*(st.layern-1) 
+             next_quantization_scale_w_addr = st.quantization_scale_w_buffer.physical_address+4*(st.layern-1)
+             next_quantization_scale_l_addr = st.quantization_scale_l_buffer.physical_address+4*(st.layern-1)
+             next_scale_fea_addr = st.scale_fea_buffer.physical_address+(st.layern-1)
+             next_deq_factor_addr = st.deq_factor_buffer.physical_address+4*(st.layern-1)
 
 
              #print("instruction address")
@@ -718,24 +728,22 @@ class FPYNQ_GAT(torch.autograd.Function):
              #print("next_deq_factor_addr")
              #print(next_deq_factor_addr)
 
-             my_ip.register_map.CTRL.AP_START=1
-             kernel_done = my_ip.register_map.CTRL.AP_DONE
-             while kernel_done == 0:
-               kernel_done = my_ip.register_map.CTRL.AP_DONE  
+             my_ip.register_map.CTRL.AP_START = 1
+             while my_ip.register_map.CTRL.AP_IDLE == 0:
+              pass
              dmult =  time.time()
              if (config.profiling == 1):   
               print('Accelerator forward kernel 1-layer time: {:.5f}ms'.format(1000/1*(dmult - amult)))
              if (config.min_output == 0):
               print('done core 1')  
            else:  
-            if(layern == 1):
+            if(st.layern == 1):
              if (config.min_output == 0):
               print('start core 1 to process layer count: ', config.instant_layer_count)
              amult =  time.time()
-             my_ip.register_map.CTRL.AP_START=1
-             kernel_done = my_ip.register_map.CTRL.AP_DONE
-             while kernel_done == 0:
-               kernel_done = my_ip.register_map.CTRL.AP_DONE  
+             my_ip.register_map.CTRL.AP_START = 1
+             while my_ip.register_map.CTRL.AP_IDLE == 0:
+              pass
              dmult =  time.time()
              if (config.profiling == 1):   
               print('Accelerator forward kernel n-layer time: {:.5f}ms'.format(1000/1*(dmult - amult)))
@@ -748,13 +756,13 @@ class FPYNQ_GAT(torch.autograd.Function):
       
 
          if(config.instant_layer_count == 1): 
-          #print("active layer: ", layern)  
+          #print("active layer: ", st.layern)  
 
      
           
           if(self.compute_attention==1):
-           output_e_val = E_buffer[0:nnz_adj].astype(config.float_type)
-           output_s_val = S_buffer[0:nnz_adj].astype(config.float_type) #you should use this
+           output_e_val = st.E_buffer[0:nnz_adj].astype(config.float_type)
+           output_s_val = st.S_buffer[0:nnz_adj].astype(config.float_type) #you should use this
         
 
 
@@ -762,20 +770,18 @@ class FPYNQ_GAT(torch.autograd.Function):
           if(config.min_output == 0):
            print("MAX FEA INT GAT")
            print(max_fea)
-           print(float(max_fea)/(2**frac_bits_o))
+           print(float(max_fea)/(2**st.frac_bits_o))
 
-          max_fea_float = float(max_fea)/(2**frac_bits_o)
-          if (layern == 1):
-           global cur_max_fea
-           if(max_fea_float > cur_max_fea):
-            cur_max_fea = max_fea_float
+          max_fea_float = float(max_fea)/(2**st.frac_bits_o)
+          if (st.layern == 1):
+           if(max_fea_float > st.cur_max_fea):
+            st.cur_max_fea = max_fea_float
           else:
-           global cur_max_fea2
-           if(max_fea_float > cur_max_fea2):
-            cur_max_fea2 = max_fea_float
+           if(max_fea_float > st.cur_max_fea2):
+            st.cur_max_fea2 = max_fea_float
         
           #if(weights.shape[1]!=16):
-          # output_acc = D_buffer[0:input.shape[0]*16]
+          # output_acc = st.D_buffer[0:input.shape[0]*16]
           # output_acc = output_acc.reshape(input.shape[0],16)
           # output_acc = output_acc[0:input.shape[0],0:weights.shape[1]] 
           # #output_acc = output_acc[0:input.shape[0],weights.shape[1]:16] 
@@ -789,31 +795,35 @@ class FPYNQ_GAT(torch.autograd.Function):
 
           ## print(output_acc)
           #else:
-          output_acc = D_buffer[0:input.shape[0]*weights.shape[1]]
+          output_acc = st.D_buffer[0:input.shape[0]*weights.shape[1]]
           output_acc = output_acc.reshape(input.shape[0],weights.shape[1]) 
 
 
           write_output = 0
+ 
+          if(config.show_sparsity==1):
+           zeros = np.count_nonzero(output_acc==0)
+           print("sparsity from layer:",st.layern,"zeros:",zeros/(input.shape[0]*weights.shape[1]))  
+           sparsity_is = zeros/(input.shape[0]*weights.shape[1])
+
           if(write_output == 1):   
            #support_pynq_q_t = np.transpose(support_pynq_q)
            df = pd.DataFrame(output_acc) #convert to a dataframe
            df.to_csv("./output.txt",index=False,header=False) #save to file    
+           #if(st.layern==2):
            sys.exit()
-          if(config.show_sparsity==1):
-           zeros = np.count_nonzero(output_acc==0)
-           print("sparsity from layer:",layern,"zeros:",zeros/(input.shape[0]*weights.shape[1]))  
           #print("Sample Output")
           #print(output_acc[0])
     
-          if(layern<config.total_layer_count):
-           layern+=1
+          if(st.layern<config.total_layer_count):
+           st.layern+=1
           else:
-           layern=1 
+           st.layern=1 
 
           #get sparse matrix for e and softmax
           if(self.compute_attention==1):
-           rindex = rowPtr_adj_buffer[0:nnz_adj]
-           cindex =  columnIndex_adj_buffer[0:nnz_adj] 
+           rindex = st.rowPtr_adj_buffer[0:nnz_adj]
+           cindex =  st.columnIndex_adj_buffer[0:nnz_adj] 
            output_s = coo_matrix((output_s_val,(rindex ,cindex)), shape=(input.shape[0], input.shape[0]))
            output_s = output_s.todense()
            output_e = coo_matrix((output_e_val,(rindex, cindex)), shape=(input.shape[0], input.shape[0]))
@@ -860,53 +870,53 @@ class FPYNQ_GAT(torch.autograd.Function):
           #print(input.shape) 
           #print("weight shape")
           #print(weights.shape)  
-          if(layern==1): #if layer 1 we return the input so layer 2 gets the right dimensions.
+          if(st.layern==1): #if layer 1 we return the input so layer 2 gets the right dimensions.
 
-           output_acc = D_buffer[0:input.shape[0]*weights.shape[1]]
+           output_acc = st.D_buffer[0:input.shape[0]*weights.shape[1]]
            #zeros = np.count_nonzero(output_acc==0)
            #print("sparsity into layer 2 zeros ", zeros/(input.shape[0]*weights.shape[1]))
            #print("output_acc")
            #print(output_acc)
-          elif(layern==2):
-           output_acc = D_buffer[0:input.shape[0]*weights.shape[1]]
-           #output_acc = D_buffer[input.shape[0]*weights.shape[1]:2*input.shape[0]*weights.shape[1]]
+          elif(st.layern==2):
+           output_acc = st.D_buffer[0:input.shape[0]*weights.shape[1]]
+           #output_acc = st.D_buffer[input.shape[0]*weights.shape[1]:2*input.shape[0]*weights.shape[1]]
            #zeros = np.count_nonzero(output_acc==0)
            #print("sparsity into layer 3 zeros ", zeros/(input.shape[0]*weights.shape[1]))
            #print(output_acc)
-          #elif(layern==3):
-          # output_acc = D_buffer[2*input.shape[0]*weights.shape[2]:3*input.shape[0]*weights.shape[2]]
+          #elif(st.layern==3):
+          # output_acc = st.D_buffer[2*input.shape[0]*weights.shape[2]:3*input.shape[0]*weights.shape[2]]
           # zeros = np.count_nonzero(output_acc==0)
           # print("sparsity into layer 4 zeros ", zeros/(input.shape[0]*weights.shape[1]))
           # #print(output_acc)
           else:
-           output_acc = D_buffer[0:input.shape[0]*weights.shape[1]]
-           #output_acc = D_buffer[2*input.shape[0]*config.hidden_channels:2*input.shape[0]*config.hidden_channels+input.shape[0]*weights.shape[1]]
+           output_acc = st.D_buffer[0:input.shape[0]*weights.shape[1]]
+           #output_acc = st.D_buffer[2*input.shape[0]*config.hidden_channels:2*input.shape[0]*config.hidden_channels+input.shape[0]*weights.shape[1]]
            #print(output_acc)
            
           # output_acc = output_acc.reshape(input.shape[0],weights.shape[1]) 
           # output_acc = torch.from_numpy(output_acc)       
           # output_acc = output_acc.float()
-          # layern+=1
+          # st.layern+=1
            
           #print("output acc 1")
           #print(output_acc)
           #return output_acc
-          #elif(layern==2):
-          # layern=1
+          #elif(st.layern==2):
+          # st.layern=1
 
-          #output_acc = D_buffer[(layern-1)*input.shape[0]*weights.shape[1]:layern*input.shape[0]*weights.shape[1]]
+          #output_acc = st.D_buffer[(st.layern-1)*input.shape[0]*weights.shape[1]:st.layern*input.shape[0]*weights.shape[1]]
 
-          if(layern<config.total_layer_count):
-           layern+=1
+          if(st.layern<config.total_layer_count):
+           st.layern+=1
           else:
-           layern=1
+           st.layern=1
            #print("output acc")
-          #print("layern here")
-          #print(layern)
+          #print("st.layern here")
+          #print(st.layern)
           
           if(self.compute_attention==1):
-           output_e_val = E_buffer[0:nnz_adj].astype(config.float_type)
-           output_s_val = S_buffer[0:nnz_adj].astype(config.float_type) #you should use this
+           output_e_val = st.E_buffer[0:nnz_adj].astype(config.float_type)
+           output_s_val = st.S_buffer[0:nnz_adj].astype(config.float_type) #you should use this
         
 
 
@@ -914,15 +924,15 @@ class FPYNQ_GAT(torch.autograd.Function):
           if(config.min_output == 0):
             print("MAX FEA INT GAT")
             print(max_fea)
-            print(float(max_fea)/(2**frac_bits_o))
+            print(float(max_fea)/(2**st.frac_bits_o))
 
-          max_fea_float = float(max_fea)/(2**frac_bits_o)
-          if (layern == 1):
-            if(max_fea_float > cur_max_fea):
-             cur_max_fea = max_fea_float
+          max_fea_float = float(max_fea)/(2**st.frac_bits_o)
+          if (st.layern == 1):
+            if(max_fea_float > st.cur_max_fea):
+             st.cur_max_fea = max_fea_float
           else:
-            if(max_fea_float > cur_max_fea2):
-             cur_max_fea2 = max_fea_float
+            if(max_fea_float > st.cur_max_fea2):
+             st.cur_max_fea2 = max_fea_float
         
 
           #print("Output_acc")
@@ -933,8 +943,8 @@ class FPYNQ_GAT(torch.autograd.Function):
           output_acc = output_acc.reshape(input.shape[0],weights.shape[1]) 
           #get sparse matrix for e and softmax
           if(self.compute_attention==1):
-            rindex = rowPtr_adj_buffer[0:nnz_adj]
-            cindex =  columnIndex_adj_buffer[0:nnz_adj] 
+            rindex = st.rowPtr_adj_buffer[0:nnz_adj]
+            cindex =  st.columnIndex_adj_buffer[0:nnz_adj] 
             output_s = coo_matrix((output_s_val,(rindex ,cindex)), shape=(input.shape[0], input.shape[0]))
             output_s = output_s.todense()
             output_e = coo_matrix((output_e_val,(rindex, cindex)), shape=(input.shape[0], input.shape[0]))
@@ -958,8 +968,8 @@ class FPYNQ_GAT(torch.autograd.Function):
             print('output_acc time: {:.5f}ms'.format(1000/1*(time.time() - bmult)))
          
           #else: #layer 3
-          # layern=1
-          # output_acc = D_buffer[2*input.shape[0]*weights.shape[1]:3*input.shape[0]*weights.shape[1]]
+          # st.layern=1
+          # output_acc = st.D_buffer[2*input.shape[0]*weights.shape[1]:3*input.shape[0]*weights.shape[1]]
           # output_acc = output_acc.reshape(input.shape[0],weights.shape[1]) 
           # output_acc = torch.from_numpy(output_acc)       
           # output_acc = output_acc.float()
@@ -987,40 +997,38 @@ class FPYNQ_GAT(torch.autograd.Function):
 
         else: #no accelerator
 
-          #print("No accelerator active layer: ",layern)
+          #print("No accelerator active layer: ",st.layern)
 
           input = input.float()
           torch.max(input)
 
           #monitor input values to calibrate thresholds
-          if (layern==3): 
+          if (st.layern==3): 
            max_input = torch.max(input)
            min_input = torch.min(input)
-           global global_max_input
-           if (max_input > global_max_input):
-            global_max_input = max_input
-            global global_min_input
-           if (min_input < global_min_input):
-            global_min_input = min_input
+           if (max_input > st.global_max_input):
+            st.global_max_input = max_input
+           if (min_input < st.global_min_input):
+            st.global_min_input = min_input
 
           if(config.fake_quantization==1):
            #print("input")
-           print("active layer: ",layern) 
-           if (layern==1): 
-            input_q = quantization_ufbits(input, f_s, f_z, config.w_qbits)
-            if(layern<config.total_layer_count):
-             layern=2
+           print("active layer: ",st.layern) 
+           if (st.layern==1): 
+            input_q = quantization_ufbits(input, st.f_s, st.f_z, config.w_qbits)
+            if(st.layern<config.total_layer_count):
+             st.layern=2
             else:
-             layern=1
-           elif(layern==2): 
-            input_q = quantization_ufbits(input, f_s2, f_z2, config.w_qbits)
-            if(layern<config.total_layer_count):
-             layern=3
+             st.layern=1
+           elif(st.layern==2): 
+            input_q = quantization_ufbits(input, st.f_s2, st.f_z2, config.w_qbits)
+            if(st.layern<config.total_layer_count):
+             st.layern=3
             else:
-             layern=1 
+             st.layern=1 
            else: 
-            input_q = quantization_ufbits(input, f_sl, f_zl, config.w_qbitsl)
-            layern=1
+            input_q = quantization_ufbits(input, st.f_sl, st.f_zl, config.w_qbitsl)
+            st.layern=1
           else:
            input_q = input
 
@@ -1042,8 +1050,8 @@ class FPYNQ_GAT(torch.autograd.Function):
             print("max weight", torch.max(weights)) 
            #print("weights_linear") 
            #print(weights_linear) 
-           weights_q = quantization_fbits(weights, w_s, w_z,  config.w_qbits) 
-           weights_linear_q = quantization_fbits(weights_linear, w_sl, w_zl,  config.w_qbitsl) 
+           weights_q = quantization_fbits(weights, st.w_s, st.w_z,  config.w_qbits) 
+           weights_linear_q = quantization_fbits(weights_linear, st.w_sl, st.w_zl,  config.w_qbitsl) 
            #print("weights linear after quant")  
            #print(weights_linear_q)        
           else:
@@ -1062,25 +1070,25 @@ class FPYNQ_GAT(torch.autograd.Function):
             #print(Wh)
             if(config.show_max_min==1):
              print("Max fea value", torch.max(Wh))
-            #Wh = float_to_fix(Wh,(internal_quantization-1))
-            Wh = Wh/(2**scale_fea) 
-            Wh = float_to_fix(Wh,(internal_quantization-1))
+            #Wh = float_to_fix(Wh,(st.internal_quantization-1))
+            Wh = Wh/(2**st.scale_fea) 
+            Wh = float_to_fix(Wh,(st.internal_quantization-1))
             #print("Internal GNN FIFO data")
             #print(Wh[0:10])
-            #Wh = torch.round(Wh, decimals = (internal_quantization-1))
-            linear_layer = linear_layer/(2**scale_fea) 
-            linear_layer = float_to_fix(linear_layer,(internal_quantization-1))
-            a_min = -(2**internal_quantization-1)/(2**internal_quantization)
-            a_max = (2**internal_quantization-1)/(2**internal_quantization)
-            #print(a_min)
-            #print(a_max)
-            #Wh = np.clip(Wh, a_min=-0.9921875, a_max=0.9921875)
-            #Wh = np.clip(Wh, a_min=-0.875, a_max=0.875)
-            #Wh = np.clip(Wh, a_min=-0.99999999, a_max=0.99999999)
-            Wh = torch.clip(Wh, min=a_min, max=a_max)
-            #Wh = torch.round(Wh, decimals = (internal_quantization-1))
-            linear_layer = torch.clip(linear_layer, min=a_min, max=a_max)
-            #linear_layer = torch.round(linear_layer, decimals = (internal_quantization-1))
+            #Wh = torch.round(Wh, decimals = (st.internal_quantization-1))
+            linear_layer = linear_layer/(2**st.scale_fea) 
+            linear_layer = float_to_fix(linear_layer,(st.internal_quantization-1))
+            st.a_min = -(2**st.internal_quantization-1)/(2**st.internal_quantization)
+            st.a_max = (2**st.internal_quantization-1)/(2**st.internal_quantization)
+            #print(st.a_min)
+            #print(st.a_max)
+            #Wh = np.clip(Wh, st.a_min=-0.9921875, st.a_max=0.9921875)
+            #Wh = np.clip(Wh, st.a_min=-0.875, st.a_max=0.875)
+            #Wh = np.clip(Wh, st.a_min=-0.99999999, st.a_max=0.99999999)
+            Wh = torch.clip(Wh, min=st.a_min, max=st.a_max)
+            #Wh = torch.round(Wh, decimals = (st.internal_quantization-1))
+            linear_layer = torch.clip(linear_layer, min=st.a_min, max=st.a_max)
+            #linear_layer = torch.round(linear_layer, decimals = (st.internal_quantization-1))
 
             #print(Wh)
            #print("attention")
@@ -1088,9 +1096,9 @@ class FPYNQ_GAT(torch.autograd.Function):
      
            adj_d = adj.to_dense()  
            if(config.fake_quantization==1):
-            attention = quantization_fbits(attention, w_s, w_z,  config.w_qbits) 
+            attention = quantization_fbits(attention, st.w_s, st.w_z,  config.w_qbits) 
             #print("quantize adj")
-            adj_d = quantization_ufbits(adj_d, a_s, a_z,  config.w_qbits) 
+            adj_d = quantization_ufbits(adj_d, st.a_s, st.a_z,  config.w_qbits) 
             if(config.show_max_min==1):
              print("max adj", torch.max(adj_d))
             adj_q = adj_d.to_sparse()
@@ -1133,8 +1141,8 @@ class FPYNQ_GAT(torch.autograd.Function):
 
 
            if (config.fake_quantization==1):
-            output_cpu = output_cpu*deq_o
-            #linear_layer = linear_layer*deq_o
+            output_cpu = output_cpu*st.deq_o
+            #linear_layer = linear_layer*st.deq_o
 
            #RELU
            if(relu==1):
@@ -1144,7 +1152,7 @@ class FPYNQ_GAT(torch.autograd.Function):
           else:
            print("output is linear")
            #print(linear_layer[0:10])
-           #linear_layer = float_to_fix(linear_layer,(internal_quantization-1))
+           #linear_layer = float_to_fix(linear_layer,(st.internal_quantization-1))
 
            tmult = time.time() 
 
@@ -1156,35 +1164,35 @@ class FPYNQ_GAT(torch.autograd.Function):
            if (config.profiling == 1):   
             print('cpu linear kernel time: {:.5f}ms'.format(1000/1*(time.time() - tmult)))
            if (config.fake_quantization == 1):
-            linear_layer = linear_layer/(2**scale_feal)
+            linear_layer = linear_layer/(2**st.scale_feal)
             #torch.set_printoptions(precision=8)
             #print(linear_layer[0:10])
-            linear_layer = float_to_fix(linear_layer,(internal_quantization-1))
+            linear_layer = float_to_fix(linear_layer,(st.internal_quantization-1))
             #print("Internal LINEAR FIFO data")
             #print(linear_layer[0:10])
             #print(linear_layer[0:10])
             #print("test")
             #test_data = float_to_fix(0.0494,7)
             #print(test_data)
-            #linear_layer = torch.round(linear_layer, decimals = (internal_quantization-1))
-            a_min = -(2**internal_quantization-1)/(2**internal_quantization)
-            a_max = (2**internal_quantization-1)/(2**internal_quantization)
-            linear_layer = torch.clip(linear_layer, min=a_min, max=a_max)
-            #linear_layer = torch.round(linear_layer, decimals = (internal_quantization-1))
+            #linear_layer = torch.round(linear_layer, decimals = (st.internal_quantization-1))
+            st.a_min = -(2**st.internal_quantization-1)/(2**st.internal_quantization)
+            st.a_max = (2**st.internal_quantization-1)/(2**st.internal_quantization)
+            linear_layer = torch.clip(linear_layer, min=st.a_min, max=st.a_max)
+            #linear_layer = torch.round(linear_layer, decimals = (st.internal_quantization-1))
             #linear_layer = torch.round(linear_layer, decimals = 3)
             #print(linear_layer[0:10])
            
            output_cpu = linear_layer 
            if (config.fake_quantization==1):
-            output_cpu = output_cpu*deq_ol
+            output_cpu = output_cpu*st.deq_ol
 
 
 
 
           #print("output_cpu")
           #print(output_cpu[0:10])
-          #print("deq_o")
-          #print(deq_o)
+          #print("st.deq_o")
+          #print(st.deq_o)
 
           ctx.nheads = self.nheads
           ctx.alpha = self.alpha
@@ -1204,478 +1212,210 @@ class FPYNQ_GAT(torch.autograd.Function):
   
     @staticmethod
     def backward(ctx, grad_output):
-        
-        def isSparse(array, m, n): 
-         counter = 0
-         # Count number of zeros
-         # in the matrix
-         for i in range(0, m):
-            for j in range(0, n):
-               if (array[i][j] == 0):
-                   counter = counter + 1
-         print("total values ",m*n)
-         print("zero values ",counter)
-         return (counter > ((m * n) // 2))
- 
-        
-        if (config.accb==1):
-                
-         #grad_weights = input.t()@adj@grad_output
-        
-         print("ACCB ON")
-        
-         #we set the gemm_mode to 2 so dense, sparse  (adj if sparse)
-                    
-         adj,input, weights,e,attentions,output = ctx.saved_tensors
-         nheads = ctx.nheads
-         alpha = ctx.alpha
-         linear = ctx.linear
-         sage = ctx.sage
-         compute_attention = ctx.compute_attention
-        
-         something = grad_adj = grad_input = grad_weights = grad_attention = None
-            
-      
-         my_ip.register_map.gemm_mode = 2 
-         my_ip.register_map.relu = 0
-        
-         #we set the adj_loop to point to in transpose      
-            
-         input_t = input.t()
-        
-      
-         my_ip.register_map.N_adj=input_t.shape[0]
-         my_ip.register_map.M_adj=input_t.shape[1]
-         support_pynq_b = input_t.data.numpy()
- 
-         support_pynq_b = support_pynq_b.reshape(1, (input_t.shape[0]*input_t.shape[1]))
+        st  = SGRACEState.get()
+        my_ip = st.my_ip
 
+        # ── hardware backward (config.accb == 1) ─────────────────────────────
+        if config.accb == 1:
 
-         #grad_weights = input.t()@adj@grad_output
-         if(config.show_max_min==1):
-          print("max/min input_t accb")
-          print(np.max(support_pynq_b))
-          print(np.min(support_pynq_b))
-         support_pynq_q = quantization_uqbits(support_pynq_b,f_s,f_z,f_qbits)
-         values_fea_buffer[0:(input_t.shape[0]*input_t.shape[1])] = (support_pynq_q * (2**0))      
-             
-         my_ip.register_map.values_adj1_offset_1 = values_fea_buffer.physical_address 
-         my_ip.register_map.values_adj2_offset_1 = values_fea_buffer.physical_address 
-         my_ip.register_map.values_adj3_offset_1 = values_fea_buffer.physical_address 
-         my_ip.register_map.values_adj4_offset_1 = values_fea_buffer.physical_address 
-            
-         #we set the fea_loop to point to adj              
+            adj, input, weights, e, attentions, output = ctx.saved_tensors
+            compute_attention = ctx.compute_attention
+            something = grad_adj = grad_attention = None
+            go_qbits  = 8
+            w_qbits   = config.w_qbits
 
-         my_ip.register_map.M_fea=adj.shape[1]
+            # --- grad_weights = input.T @ adj @ grad_output ---
+            # Set up gemm_mode=2 (dense×sparse): adj_loop→input.T, fea_loop→adj
+            my_ip.register_map.gemm_mode = 2
+            my_ip.register_map.relu      = 0
 
-         my_ip.register_map.values_fea1_offset_1 = values_adj_buffer.physical_address 
-         my_ip.register_map.values_fea2_offset_1 = values_adj_buffer.physical_address 
-         my_ip.register_map.values_fea3_offset_1 = values_adj_buffer.physical_address 
-         my_ip.register_map.values_fea4_offset_1 = values_adj_buffer.physical_address 
-            
-         my_ip.register_map.rowPtr_fea1_offset_1 = rowPtr_adj_buffer.physical_address
-         my_ip.register_map.rowPtr_fea2_offset_1 = rowPtr_adj_buffer.physical_address
-         my_ip.register_map.rowPtr_fea3_offset_1 = rowPtr_adj_buffer.physical_address
-         my_ip.register_map.rowPtr_fea4_offset_1 = rowPtr_adj_buffer.physical_address
+            input_np = input.numpy()                              # avoid repeated .t() alloc
+            input_t  = input_np.T
+            N_in, M_in = input_t.shape
+            my_ip.register_map.N_adj = N_in
+            my_ip.register_map.M_adj = M_in
+            my_ip.register_map.M_fea = adj.shape[1]
+            my_ip.register_map.P_w   = grad_output.shape[1]
 
-         my_ip.register_map.columnIndex_fea1_offset_1 =columnIndex_adj_buffer.physical_address
-         my_ip.register_map.columnIndex_fea2_offset_1 =columnIndex_adj_buffer.physical_address 
-         my_ip.register_map.columnIndex_fea3_offset_1 =columnIndex_adj_buffer.physical_address 
-         my_ip.register_map.columnIndex_fea4_offset_1 =columnIndex_adj_buffer.physical_address
-        
-         support_g = torch.transpose(grad_output,0,1)
-     
-         my_ip.register_map.P_w=grad_output.shape[1]
-        
-         support_pynq_g = support_g.data.numpy()
-            
-         support_pynq_g = support_pynq_g.reshape(1, (grad_output.shape[0]*grad_output.shape[1]))
-            
-         #ojo B_buffer[0:(grad_output.shape[0]*grad_output.shape[1])] = (support_pynq_g * (1<<w_align))
-         #grad_weights = input.t()@adj@grad_output
-         if(config.show_max_min==1):
-          print("max/min grad_output accb")
-          print(np.max(support_pynq_g))
-          print(np.min(support_pynq_g))
-         support_pynq_q = quantization_qbits(support_pynq_g,go_s,go_z,go_qbits)
-         B_buffer[0:(grad_output.shape[0]*grad_output.shape[1])] = (support_pynq_q * (2**0))
-            
-         amult = time.time()
-         my_ip.register_map.CTRL.AP_START=1
-         kernel_done = my_ip.register_map.CTRL.AP_DONE
-         while kernel_done == 0:
-          kernel_done = my_ip.register_map.CTRL.AP_DONE
-         if (config.profiling == 1):
-          print('acc backward grad_weights kernel mult: {:.5f}s'.format(time.time() - amult))
-        
-    
-         output_acc = D_buffer[0:input_t.shape[0]*grad_output.shape[1]]*deq_gw/(2**frac_bits_o) #you should use this
-      
-         max_fea = my_ip.register_map.max_fea
+            # Quantise input.T → values_fea_buffer (reused as adj_loop source)
+            inp_flat = input_t.reshape(1, N_in * M_in)
+            st.values_fea_buffer[:N_in * M_in] = (
+                quantization_uqbits(inp_flat, st.f_s, st.f_z, w_qbits))
+            my_ip.register_map.values_adj1_offset_1 = st.values_fea_buffer.physical_address
+            my_ip.register_map.values_adj2_offset_1 = st.values_fea_buffer.physical_address
+            my_ip.register_map.values_adj3_offset_1 = st.values_fea_buffer.physical_address
+            my_ip.register_map.values_adj4_offset_1 = st.values_fea_buffer.physical_address
 
-         output_acc = output_acc.reshape(input_t.shape[0],grad_output.shape[1])    
-       
-         grad_weights = torch.from_numpy(output_acc).clone()  
-  
-         grad_weights = grad_weights.float()
-                       
-         my_ip.register_map.gemm_mode = 1 
-         my_ip.register_map.relu = 0
-         my_ip.register_map.gat_mode=compute_attention
-        
-         my_ip.register_map.N_adj=adj.shape[0]
-         my_ip.register_map.M_adj=adj.shape[1]
-         my_ip.register_map.M_fea=grad_output.shape[1]
-         my_ip.register_map.P_w=weights.shape[0]
-    
-         my_ip.register_map.values_adj1_offset_1 = values_adj_buffer.physical_address 
-         my_ip.register_map.values_adj2_offset_1 = values_adj_buffer.physical_address 
-         my_ip.register_map.values_adj3_offset_1 = values_adj_buffer.physical_address 
-         my_ip.register_map.values_adj4_offset_1 = values_adj_buffer.physical_address 
-            
-         my_ip.register_map.rowPtr_adj1_offset_1 = rowPtr_adj_buffer.physical_address
-         my_ip.register_map.rowPtr_adj2_offset_1 = rowPtr_adj_buffer.physical_address
-         my_ip.register_map.rowPtr_adj3_offset_1 = rowPtr_adj_buffer.physical_address
-         my_ip.register_map.rowPtr_adj4_offset_1 = rowPtr_adj_buffer.physical_address
+            # Point fea_loop at the adj COO data already in adj buffers
+            my_ip.register_map.values_fea1_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.values_fea2_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.values_fea3_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.values_fea4_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_fea1_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_fea2_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_fea3_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_fea4_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_fea1_offset_1 = st.columnIndex_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_fea2_offset_1 = st.columnIndex_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_fea3_offset_1 = st.columnIndex_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_fea4_offset_1 = st.columnIndex_adj_buffer.physical_address
 
-         my_ip.register_map.columnIndex_adj1_offset_1 =columnIndex_adj_buffer.physical_address
-         my_ip.register_map.columnIndex_adj2_offset_1 =columnIndex_adj_buffer.physical_address 
-         my_ip.register_map.columnIndex_adj3_offset_1 =columnIndex_adj_buffer.physical_address 
-         my_ip.register_map.columnIndex_adj4_offset_1 =columnIndex_adj_buffer.physical_address
-            
-         #we set the fea_loop to point to grad_output
-                  
-         support_pynq_b = grad_output.data.numpy()
-         #print(support_pynq_b)
+            # Quantise grad_output.T → B_buffer (weight input for grad_weights kernel)
+            go_np  = grad_output.numpy()
+            go_t   = go_np.T
+            go_flat = go_t.reshape(1, go_np.shape[0] * go_np.shape[1])
+            st.B_buffer[:go_flat.size] = quantization_qbits(go_flat, st.go_s, st.go_z, go_qbits)
 
-         support_pynq_b = support_pynq_b.reshape(1, (grad_output.shape[0]*grad_output.shape[1]))
-         #print(input_t.shape[0]*input_t.shape[1])
-               
-         #grad_input = adj@grad_output@weights.t()
-         if(config.show_max_min==1):
-          print("max/min grad_output accb")
-          print(np.max(support_pynq_b))
-          print(np.min(support_pynq_b))
-         support_pynq_q = quantization_uqbits(support_pynq_b,go_s,go_z,go_qbits)
-         values_fea_buffer[0:(grad_output.shape[0]*grad_output.shape[1])] = (support_pynq_q * (2**0))
-            
-         my_ip.register_map.values_fea1_offset_1 = values_fea_buffer.physical_address 
-         my_ip.register_map.values_fea2_offset_1 = values_fea_buffer.physical_address 
-         my_ip.register_map.values_fea3_offset_1 = values_fea_buffer.physical_address 
-         my_ip.register_map.values_fea4_offset_1 = values_fea_buffer.physical_address 
-                
-         #we set the weights. transpose of transpose so nothing to transpose.
-        
-         support_g = weights
-     
-         support_pynq_g = support_g.data.numpy()
-            
-  
-         support_pynq_g = support_pynq_g.reshape(1, (weights.shape[0]*weights.shape[1]))
-         if(config.show_max_min==1):
-          print("max/min weights_t accb")
-          print(np.max(support_pynq_g))
-          print(np.min(support_pynq_g))
-         support_pynq_q = quantization_qbits(support_pynq_g,w_s,w_z,w_qbits)
-         B_buffer[0:(weights.shape[0]*weights.shape[1])] = (support_pynq_q * (2**0))
-  
-         amult = time.time()
-         my_ip.register_map.CTRL.AP_START=1
-         kernel_done = my_ip.register_map.CTRL.AP_DONE
-         while kernel_done == 0:
-          kernel_done = my_ip.register_map.CTRL.AP_DONE
-         print('acc backward grad_input kernel mult: {:.5f}s'.format(time.time() - amult))
+            if config.profiling == 1:
+                amult = time.time()
+            my_ip.register_map.CTRL.AP_START = 1
+            while my_ip.register_map.CTRL.AP_IDLE == 0:
+                pass
+            if config.profiling == 1:
+                print("acc backward grad_weights: {:.5f}s".format(time.time() - amult))
 
-         
+            n_gw = N_in * grad_output.shape[1]
+            grad_weights = torch.from_numpy(
+                (st.D_buffer[:n_gw] * st.deq_gw / (2 ** st.frac_bits_o))
+                .reshape(N_in, grad_output.shape[1]).copy()).float()
 
-         #grad_input = adj@grad_output@weights.t()
-         output_acc2 = D_buffer[0:adj.shape[0]*weights.shape[0]]*deq_gi/(2**frac_bits_o) #you should use this
- 
-         max_fea = my_ip.register_map.max_fea
-        
-         output_acc2 = output_acc2.reshape(adj.shape[0],weights.shape[0]) 
+            # --- grad_input = adj @ grad_output @ weights.T ---
+            # Set up gemm_mode=1 (sparse×dense): adj_loop→adj, fea_loop→grad_output
+            my_ip.register_map.gemm_mode     = 1
+            my_ip.register_map.relu          = 0
+            my_ip.register_map.gat_mode      = compute_attention
+            my_ip.register_map.N_adj         = adj.shape[0]
+            my_ip.register_map.M_adj         = adj.shape[1]
+            my_ip.register_map.M_fea         = grad_output.shape[1]
+            my_ip.register_map.P_w           = weights.shape[0]
 
-         grad_input = torch.from_numpy(output_acc2).clone()  
+            my_ip.register_map.values_adj1_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.values_adj2_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.values_adj3_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.values_adj4_offset_1      = st.values_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_adj1_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_adj2_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_adj3_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.rowPtr_adj4_offset_1      = st.rowPtr_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_adj1_offset_1 = st.columnIndex_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_adj2_offset_1 = st.columnIndex_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_adj3_offset_1 = st.columnIndex_adj_buffer.physical_address
+            my_ip.register_map.columnIndex_adj4_offset_1 = st.columnIndex_adj_buffer.physical_address
 
-         grad_input = grad_input.float()
+            # Quantise grad_output → values_fea_buffer
+            go_flat2 = go_np.reshape(1, go_np.shape[0] * go_np.shape[1])
+            st.values_fea_buffer[:go_flat2.size] = (
+                quantization_uqbits(go_flat2, st.go_s, st.go_z, go_qbits))
+            my_ip.register_map.values_fea1_offset_1 = st.values_fea_buffer.physical_address
+            my_ip.register_map.values_fea2_offset_1 = st.values_fea_buffer.physical_address
+            my_ip.register_map.values_fea3_offset_1 = st.values_fea_buffer.physical_address
+            my_ip.register_map.values_fea4_offset_1 = st.values_fea_buffer.physical_address
 
-         return something,something, something, grad_adj,something, grad_input, grad_weights, grad_attention,something,something,something,something
-        
-            
-        else: 
-        
-  
-         adj,input, weights,weights_linear,e,attentions,output = ctx.saved_tensors
-         nheads = ctx.nheads
-         alpha = ctx.alpha
-         linear = ctx.linear
-         sage = ctx.sage
-         compute_attention = ctx.compute_attention
+            # Quantise weights → B_buffer (no transpose needed: transpose of transpose = identity)
+            w_np    = weights.numpy()
+            w_flat  = w_np.reshape(1, w_np.shape[0] * w_np.shape[1])
+            st.B_buffer[:w_flat.size] = quantization_qbits(w_flat, st.w_s, st.w_z, w_qbits)
 
-         #adj, input, weights,output = ctx.saved_tensors
+            if config.profiling == 1:
+                amult = time.time()
+            my_ip.register_map.CTRL.AP_START = 1
+            while my_ip.register_map.CTRL.AP_IDLE == 0:
+                pass
+            if config.profiling == 1:
+                print("acc backward grad_input: {:.5f}s".format(time.time() - amult))
 
-         something = grad_adj = grad_input = grad_weights = grad_weights_linear = grad_attention = None
+            n_gi = adj.shape[0] * weights.shape[0]
+            grad_input = torch.from_numpy(
+                (st.D_buffer[:n_gi] * st.deq_gi / (2 ** st.frac_bits_o))
+                .reshape(adj.shape[0], weights.shape[0]).copy()).float()
 
-    
-        
-           
-         #input = input.float()
-            
-        
-            
-    
-         #print(grad_output.shape)
-         #grad_input = grad_output.clone() #this to merge relub. Note that conv2 layer has no relu so this should not run for conv2
-         #grad_input[input < 0] = 0
-         #grad_input[output == 0] = 0 #this to merge relub
-    
-         ##########support = adj@input;
-         ##########support2 = grad_output@weights.t()
-         ##########grad_weights = support.t()@grad_output #this to unmerge relub
-         #grad_weights = support.t()@grad_input #this to merge relub
-    
-         ##########grad_input = adj@support2
-        
-         
-        
-         tmult = time.time()
-         input_t = input.t()
-         #print(input)
-         #print(adj)
-         #print(grad_output)   
-         
-         #print("in")
-         #print(adj)
-         #print(grad_output)
-         #print(input_t)
+            return (something, something, something, grad_adj, something,
+                    grad_input, grad_weights, grad_attention,
+                    something, something, something, something)
 
-     
-         if (config.profiling == 1):
-          print('CPU backward grad_weights: {:.5f}s'.format(time.time() - tmult))  
-        
-         #print("out grad_weights")
-         #print(grad_weights)
-        
-         # compute attention
-         weights_t = weights.t()
-         weights_linear_t = weights_linear.t()
-  
-            
-         if(compute_attention==1):
-         
+        # ── CPU backward (config.accb == 0) ──────────────────────────────────
+        else:
+            adj, input, weights, weights_linear, e, attentions, output = ctx.saved_tensors
+            alpha             = ctx.alpha
+            linear            = ctx.linear
+            sage              = ctx.sage
+            compute_attention = ctx.compute_attention
 
-            
-          #attention matrix
-          #support = torch.mm(weights_t,input_t)
-          #softmax_out = torch.mm(grad_output[i], support)
-          #Joe
-          #print("grad_output") 
-          #print(grad_output[i])
-          #print(output[i].size())
-          #print(grad_output[i].size())
-          #delta_k_prime = output[i]*grad_output[i] 
-          support = torch.mm(weights_t,input_t)
-          softmax_out = torch.mm(grad_output, support)
-        
-          #softmax derivate
+            something = grad_adj = grad_input = grad_weights = grad_weights_linear = grad_attention = None
 
-          soft_gradient = torch.empty(input.shape[0],input.shape[0])
-        
-  
-          #d_softmax = (attentions*np.identity(2708) - attentions.t() * attentions)
-          #soft_gradient = softmax_out.float() @ d_softmax.float()
-        
-          row_identity = np.identity(input.shape[0])
-  
-          #joe 
-          #for j in range(data.num_nodes):
-          # d_softmax = (attentions[i][j]*row_identity - attentions[i][j].t() @ attentions[i][j])
-          # layer =  softmax_out[j]  
-          # layer = layer.unsqueeze(0)
-          # soft_gradient[j] = layer.float() @ d_softmax.float()
-            
-          #simpler 
-          #for j in range(data.num_nodes):
-          # d_softmax = (attentions[i][j]*row_identity[j] - attentions[i][j])
-          # layer =  softmax_out[j]  
-          # layer = layer.unsqueeze(0)
-          # soft_gradient[j] = layer.float() * d_softmax.float()
-        
-          #magic
-          dx = attentions*softmax_out
-          s = dx.sum(axis=dx.ndim-1,keepdims=True)
-          soft_gradient = dx - attentions*s
-        
-          #check_this
-          #for j in range(data.num_nodes):
-          # attentionv = attentions[i][j].unsqueeze(0)
-          # diagonal = attentions[i][j]*row_identity
-          # attentionv_t = attentionv.t()
-          # outer_product  = torch.mm(attentionv_t,attentionv)
-            
-          # d_softmax = diagonal - outer_product
-          # layer =  softmax_out[j]  
-          # layer = layer.unsqueeze(0)
-          # soft_gradient[j] = layer.float() @ d_softmax.float()
-          #print(soft_gradient[j])
-           
-          #layer =  softmax_out[i]      
-          #soft_gradient = layer.float()
-        
-          #zero_vec = -9e15*torch.ones_like(soft_gradient)
-          zero_vec = torch.zeros_like(soft_gradient)
-          adj_d = adj.to_dense()
-          soft_gradient = torch.where(adj_d > 0, soft_gradient, zero_vec) # not sure about this but it works better with zero_vec
-            
-          #print('soft gradient')
-          #print(soft_gradient)
-          #print(soft_gradient[0])
-    
-          #soft_gradient[e[i] < 0] = 0.1 #normal software inplementation leaky relu 
-          #dx = torch.ones_like(e[i])
-          #dx[e[i] < 0] = 0.1
-          dx = ((e > 0) + alpha*(e<=0)) 
-            
-          #with sparse e
-           
-        
-          #print('e shapes')
-          #print(soft_gradient.shape)
-          #print(dx.shape)
-            
-          #joe c_prime*dLdL 
-          soft_gradient = dx*soft_gradient
-            
-          #input gradient calculation
+            input_t          = input.t()
+            weights_t        = weights.t()
+            weights_linear_t = weights_linear.t()
 
-            
-          #layer =  softmax_out[0]  
-        
-          #layer = layer.unsqueeze(0)
-        
-          #soft_gradient = layer.float() @ d_softmax.float()
+            if config.profiling == 1:
+                tmult = time.time()
 
-          #soft_gradient = softmax_backward(softmax_out)
-         
-          #for i in range(len(softmax_out)):
-          #soft_gradient = softmax_out * (1-softmax_out)
-       
-        
- 
-        
-          #print('soft gradient2')
-          #print(d_softmax.shape)
-          #print(soft_gradient[0])
-        
-          #X in Joe
-          #support = torch.mm(input,weights[i])   
-         
-          #Dlda = X @ sigma in Joe 
-          #support1 = torch.mm(soft_gradient,support) 
-            
-          #print('support1')
-          #print(d_softmax.shape)
-          #print(support1[0])
-          #torch_ones = torch.ones(data.num_nodes)
-          #torch_ones_t = torch_ones.t()
-            
-          #print("grad preattention")   
-          #print(support1)
-            
-          support = torch.mm(weights_t,input_t)
-          torch_ones = torch.ones(input.shape[0])
-          torch_ones_t =  torch_ones.t()
-          #print(support.type())
-          #print(soft_gradient.type())
-          support1 = torch.mm(support,soft_gradient)
-          grad_attention1 = torch.matmul(support1,torch_ones_t)
-            
-          support = torch.mm(input,weights)
-          support2 =  torch.mm(soft_gradient,support)
-          grad_attention2 = torch.matmul(torch_ones,support2)
-          grad_attention2 = grad_attention2.t()
-        
-          #print(grad_attention1)
-          
-          #print(grad_attention2)
-        
-          tuple = (grad_attention1,grad_attention2)
-        
-          grad_attention = torch.cat(tuple)
-            
-          #grad_attention = grad_attention.unsqueeze(1)
-          output_attention = grad_attention.unsqueeze(1)
-         
-         else:
-          #output_attention = torch.zeros(size=(config.hidden_channels*2, 1)).cuda()
-          #output_attention = torch.zeros(size=(config.hidden_channels*2, 1))
-          output_attention = torch.zeros(size=(weights.shape[1]*2, 1))
-          output_attention = output_attention.to(config.device)
-         
-         tmult = time.time()
-         #grad_weights = input.t()@adj@grad_output
-         #print("in")
-         #print(weights_t)
-         #print(grad_output)
-        
-         support = torch.mm(grad_output,weights_t)
-         #print(grad_output)
-         if(compute_attention==1):
-          output_input = torch.mm(attentions, support)
-          support = torch.mm(attentions,grad_output)
-         else:
-          if(sage==1):  
-           output_input = torch.mm(adj, support) + torch.mm(grad_output,weights_linear_t)
-          elif(linear==1):
-           output_input = torch.mm(grad_output,weights_linear_t)
-           #output_input = torch.zeros(size=(grad_output.shape[0],weights_linear_t.shape[1])) 
-           #print("weights_linear_t")
-           #print(weights_linear_t.shape)
-          else:
-           output_input = torch.mm(adj, support)
-          support = torch.mm(adj,grad_output) 
-            
-         output_weights = torch.mm(input_t, support)
-        
-         if(sage==1):
-          grad_weights_linear = torch.mm(input_t,grad_output)
-         elif(linear==1):
-          grad_weights_linear = torch.mm(input_t,grad_output) 
-          #print('grad weights linear')
-          #print(grad_weights_linear)
-          #print('grad output')
-          #print(grad_output)
-          #print('grad input')
-          #print(output_input)
-         else:
-          grad_weights_linear = torch.zeros(size=(input_t.shape[0],grad_output.shape[1])) 
-    
-         #print("out")
-         #print(grad_input)
-         #grad_input = adj@grad_output@weights.t()
-         if (config.profiling == 1):
-          print('CPU backward grad_input: {:.5f}s'.format(time.time() - tmult))
- 
-         #print(grad_weights)
-         #print(grad_weights)
-         #print(grad_input)
-         #in forward: my_ip, self,adj,input, weights,attention,out_features,dropout):
-        grad_weights = output_weights
-         #print("grad weights")
-         #print(grad_weights)
-        grad_attention = output_attention
+            # ── attention gradient ────────────────────────────────────────────
+            if compute_attention == 1:
+                # Efficient batched softmax Jacobian via:
+                #   soft_gradient = attentions * (softmax_out - (softmax_out * attentions).sum(-1, keepdim=True))
+                # This avoids allocating an (N×N) identity matrix entirely.
+                support     = torch.mm(weights_t, input_t)           # (out, N)
+                softmax_out = torch.mm(grad_output, support)          # (N, N)
 
-        grad_input = output_input
-        #print("grad_input")
-        #print(grad_input.shape)
+                # Vectorised softmax Jacobian: s_ij * (delta_ij - s_ik) * g_kj
+                dx  = (e > 0).float() + alpha * (e <= 0).float()      # LeakyReLU mask
+                # dx * (diag(a) - a aᵀ) @ softmax_out, sparse-masked
+                s   = (attentions * softmax_out).sum(dim=-1, keepdim=True)
+                soft_gradient = dx * attentions * (softmax_out - s)
 
-        #print("device")
-        #print(grad_attention.device)
-        #return something, something, something,something, grad_input, grad_weights, grad_linear_weights, something, grad_attention, something, something, something,something
+                # Mask to graph edges only
+                adj_d         = adj.to_dense()
+                soft_gradient = torch.where(adj_d > 0, soft_gradient,
+                                            torch.zeros_like(soft_gradient))
 
-        return something, something, something,something, grad_input, grad_weights, grad_weights_linear, something, something, grad_attention, something, something,something
+                # grad_attention = [W^T X^T soft_grad 1 ; 1^T soft_grad^T X W]
+                support1       = torch.mm(support, soft_gradient)          # (out, N)
+                grad_attention1 = support1.sum(dim=-1)                     # (out,)
+                support2        = torch.mm(soft_gradient, torch.mm(input, weights))
+                grad_attention2 = support2.sum(dim=0)                      # (out,)
+                output_attention = torch.cat([grad_attention1,
+                                              grad_attention2]).unsqueeze(1)
+            else:
+                output_attention = torch.zeros(
+                    weights.shape[1] * 2, 1, device=config.device)
 
-  
+            # ── grad_input and grad_weights ───────────────────────────────────
+            support = torch.mm(grad_output, weights_t)               # (N, in)
+
+            if compute_attention == 1:
+                output_input   = torch.mm(attentions, support)
+                support        = torch.mm(attentions, grad_output)
+            else:
+                if sage == 1:
+                    output_input = (torch.mm(adj, support)
+                                    + torch.mm(grad_output, weights_linear_t))
+                elif linear == 1:
+                    output_input = torch.mm(grad_output, weights_linear_t)
+                else:
+                    output_input = torch.mm(adj, support)
+                support = torch.mm(adj, grad_output)
+
+            output_weights = torch.mm(input_t, support)              # (in, out)
+
+            if sage == 1 or linear == 1:
+                grad_weights_linear = torch.mm(input_t, grad_output)
+            else:
+                grad_weights_linear = torch.zeros(
+                    input_t.shape[0], grad_output.shape[1])
+
+            if config.profiling == 1:
+                print("CPU backward: {:.5f}s".format(time.time() - tmult))
+
+            grad_weights  = output_weights
+            grad_attention = output_attention
+            grad_input     = output_input
+
+            return (something, something, something, something,
+                    grad_input, grad_weights, grad_weights_linear,
+                    something, something, grad_attention,
+                    something, something, something, something, something)
+
 
 import math
 import time
@@ -1723,164 +1463,13 @@ class Relu_SGRACE(Module):
         #output = self.fn(x)
         return output
     
-class GATConv_SGRACE(Module):
-    """
-    GAT layer 
-    """
-    def __init__(self, in_features, out_features, nheads=1, bias=True, dropout=0.2, alpha=0.2,concat=False):
-        super(GATConv_SGRACE, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.alpha = alpha
-        self.dropout = dropout
-        #torch.manual_seed(12345)
 
-        self.compute_attention = 1
-        self.sage=0
-        self.linear=0
-        
-        self.weight_linear = Parameter(torch.FloatTensor(in_features, out_features))      
-        
-        #print('weight linear')
-        #print(self.weight_linear.shape)
-
-        self.weight = Parameter(torch.FloatTensor(in_features, out_features*nheads))
-        
-        init.xavier_uniform_(self.weight.data, gain=1.414)
-        init.xavier_uniform_(self.weight_linear.data, gain=1.414)
-        
-        self.attention = Parameter(torch.empty(size=(2*out_features*nheads, 1)))
-        init.xavier_uniform_(self.attention.data, gain=1.414)
-        #print('first attention')
-        #print(self.attention)
-        self.leakyrelu = LeakyReLU(self.alpha)
-
-
-        self.nheads = nheads
-        self.concat = concat
-        self.fn = FPYNQ_GAT.apply
-        if(config.acc==1):
-         self.my_ip = my_ip
-        else:
-         self.my_ip = None   
-        if bias:
-            self.bias = Parameter(torch.FloatTensor(out_features))
-        else:
-            self.register_parameter('bias', None)
-
-    def run_kernel(self):
-        self.my_ip.register_map.CTRL.AP_START=1
-        kernel_done = self.my_ip.register_map.CTRL.AP_DONE
-        while kernel_done == 0:
-            kernel_done = self.my_ip.register_map.CTRL.AP_DONE
-   
-
-
-    def forward(self, stream,dense, relu,input, edge_index,norm, adj,weights_l2):
-        
-
-        if(config.acc==1):
-         self.my_ip.stream_mode = stream 
-         self.my_ip.register_map.relu = relu
-         self.my_ip.register_map.gemm_mode = dense
-         self.my_ip.register_map.gat_mode = self.compute_attention
-         self.my_ip.register_map.linear_mode = self.linear
-         self.my_ip.register_map.sage_mode = self.sage
-
-        if(config.instant_layer_count==1):
-         if(dense==0):
-          pynq_features = input.to_sparse() #coo
-          nnz_fea = len(pynq_features.values())
-          if(config.acc==1):
-           self.my_ip.register_map.nnz_fea1 = nnz_fea
-          rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-          columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
-          #values_np = pynq_features.values().data.numpy() 
-          values_np = pynq_features.values() 
-          #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:nnz_fea] = values_np
-
-         else:
-          if(config.device=="cpu"):   
-           xaux = input.detach().numpy()
-          else:
-           xaux = input
-          #xaux = input
-          xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-          #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
-          #print('layern') 
-          #print(layern)
-          if(config.write_file == 1 and layern == 3):  
-           df = pd.DataFrame(xaux) #convert to a dataframe
-           df.to_csv("./linear_in.txt",index=False,header=False) #save to file   
-          #print('edge_index shape') 
-          #print(edge_index.shape)
-          #print('input size') 
-          #print(input.size(0))
-         nnz_adj = len(norm)
-
-         rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-         values_adj_buffer[0:nnz_adj] = norm
-         columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
-         if(config.acc==1):
-          self.my_ip.register_map.nnz_adj1 = nnz_adj
-
-         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,self.out_features,self.dropout,relu)
- 
-        else: #2 layer
-         if(layern==1):  
-          if(dense==0):
-           pynq_features = input.to_sparse() #coo
-           nnz_fea = len(pynq_features.values())
-           if(config.acc==1):
-            self.my_ip.register_map.nnz_fea1 = nnz_fea
-           rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-           columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
-           #values_np = pynq_features.values().data.numpy() 
-           values_np = pynq_features.values() 
-           #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:nnz_fea] = values_np
-
-          else:
-           if(config.device=="cpu"):   
-            xaux = input.detach().numpy()
-           else:
-            xaux = input
-           #xaux = input
-           xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-           #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
-           #print('edge_index shape') 
-           #print(edge_index.shape)
-           #print('input size') 
-           #print(input.size(0))
-
-  
-          nnz_adj = len(norm)
-          rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-          values_adj_buffer[0:nnz_adj] = norm
-          columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
-          if(config.acc==1):
-           self.my_ip.register_map.nnz_adj1 = nnz_adj
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, weights_l2,weights_l3,self.attention,self.out_features,self.dropout,relu)
-         else: # second layer
-          nnz_adj = len(norm)
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, weights_l2,weights_l3, self.attention,self.out_features,self.dropout,relu)        
-       
-        return output
-
-    def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_features) + ' -> ' \
-               + str(self.out_features) + ')'
-    
 
 class GCNConv_SGRACE(Module):
     """
     GAT layer 
     """
-    def __init__(self, in_features, out_features, bias=True):
+    def __init__(self, state, in_features, out_features, bias=True):
         super(GCNConv_SGRACE, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -1913,8 +1502,9 @@ class GCNConv_SGRACE(Module):
         self.leakyrelu = LeakyReLU(self.alpha)
     
         self.fn = FPYNQ_GAT.apply
+        self.state = state
         if(config.acc==1):
-         self.my_ip = my_ip
+         self.my_ip = state.my_ip
         else:
          self.my_ip = None   
         if bias:
@@ -1923,16 +1513,16 @@ class GCNConv_SGRACE(Module):
             self.register_parameter('bias', None)
 
     def run_kernel(self):
-        self.my_ip.register_map.CTRL.AP_START=1
-        kernel_done = self.my_ip.register_map.CTRL.AP_DONE
-        while kernel_done == 0:
-            kernel_done = self.my_ip.register_map.CTRL.AP_DONE
+        self.my_ip.register_map.CTRL.AP_START = 1
+        while self.my_ip.register_map.CTRL.AP_IDLE == 0:
+            pass
    
 
 
-    def forward(self, stream,dense, relu,input, edge_index,norm, adj,srelu,weights_l2,weights_l3,weights_l4):
+    def forward(self, stream,dense, relu,input, edge_index,norm, adj,srelu,weights_l2,weights_l3,weights_l4,attention_l2, attention_l3):
   
         
+        st = self.state
         if(config.acc==1):
          self.my_ip.register_map.load_weights = config.load_weights
          #self.my_ip.stream_mode = stream 
@@ -1943,26 +1533,32 @@ class GCNConv_SGRACE(Module):
          #self.my_ip.register_map.sage_mode = self.sage
          #print("srelu")
          #print(srelu)
-         srelu_buffer[0] = srelu
+         st.srelu_buffer[0] = srelu
 
 
         if(config.instant_layer_count==1):
          if(dense==0):
+          if(config.show_sparsity==1):
+           zeros = np.count_nonzero(input==0)
+           print("sparsity in the input:",st.layern,"zeros:",zeros/(input.shape[0]*input.shape[1]))   
           pynq_features = input.to_sparse() #coo
           nnz_fea = len(pynq_features.values())
           #print("nnz_fea")
           #print(nnz_fea)
           if(config.acc==1):
            self.my_ip.register_map.nnz_fea1 = nnz_fea
-          rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-          columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+          st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+          st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
           #values_np = pynq_features.values().data.numpy() 
           values_np = pynq_features.values()\
-          #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:nnz_fea] = values_np
+          #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:nnz_fea] = values_np
 
           write_fea = 0
           if (write_fea == 1):
+           pynq_features_dense = input.detach().numpy()
+           df = pd.DataFrame(pynq_features_dense) #convert to a dataframe
+           df.to_csv("./fea_dense.txt",index=False,header=False) #save to file  
            fea_np = pynq_features.indices()[0].numpy() #convert to Numpy array
            df = pd.DataFrame(fea_np) #convert to a dataframe
            df.to_csv("./fea_in.txt",sep=',',line_terminator=',',index=False,header=False) #save to file
@@ -1976,6 +1572,8 @@ class GCNConv_SGRACE(Module):
            fea_np = pynq_features.values().numpy() #convert to Numpy array  
            df = pd.DataFrame(fea_np) #convert to a dataframe
            df.to_csv("./fea_in.txt",sep=',',line_terminator=',',mode='a',index=False,header=False) #save to file
+           print('nnz fea') 
+           print(nnz_fea)
            #sys.exit()
 
          else:
@@ -1984,9 +1582,12 @@ class GCNConv_SGRACE(Module):
           else:
            xaux = input
           #xaux = input
+            
+          #support_pynq_q_t = np.transpose(support_pynq_q)
+  
           xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-          #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+          #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
   
           #print('edge_index shape') 
           #print(edge_index.shape)
@@ -2001,9 +1602,9 @@ class GCNConv_SGRACE(Module):
          nnz_adj = len(norm)
          #print('nnz_adj')
          #print(nnz_adj)
-         rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-         values_adj_buffer[0:nnz_adj] = norm
-         columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+         st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+         st.values_adj_buffer[0:nnz_adj] = norm
+         st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
 
          write_adj = 0
          if (write_adj == 1):
@@ -2025,10 +1626,10 @@ class GCNConv_SGRACE(Module):
          if(config.acc==1):
           self.my_ip.register_map.nnz_adj1 = nnz_adj
 
-         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,self.out_features,self.dropout,relu)
+         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,attention_l2, attention_l3,self.out_features,self.dropout,relu)
  
         else: #2 layer
-         if(layern==1):  
+         if(st.layern==1):  
           if(dense==0):
            pynq_features = input.to_sparse() #coo
            #print("pynq features length")
@@ -2044,12 +1645,12 @@ class GCNConv_SGRACE(Module):
            #print(nnz_fea)
            if(config.acc==1):
             self.my_ip.register_map.nnz_fea1 = nnz_fea
-           rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-           columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+           st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+           st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
            #values_np = pynq_features.values().data.numpy() 
            values_np = pynq_features.values() 
-           #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:nnz_fea] = values_np
+           #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:nnz_fea] = values_np
 
           else:
            if(config.device=="cpu"):   
@@ -2058,8 +1659,8 @@ class GCNConv_SGRACE(Module):
             xaux = input
            #xaux = input
            xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-           #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+           #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
            #print('edge_index shape') 
            #print(edge_index.shape)
            #print('input size') 
@@ -2067,15 +1668,15 @@ class GCNConv_SGRACE(Module):
 
   
           nnz_adj = len(norm)
-          rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-          values_adj_buffer[0:nnz_adj] = norm
-          columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+          st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+          st.values_adj_buffer[0:nnz_adj] = norm
+          st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
           if(config.acc==1):
            self.my_ip.register_map.nnz_adj1 = nnz_adj
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2,weights_l3,self.attention,self.out_features,self.dropout,relu)
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2,weights_l3,self.attention,attention_l2, attention_l3,self.out_features,self.dropout,relu)
          else: # second layer
           nnz_adj = len(norm)
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3,self.attention,self.out_features,self.dropout,relu)        
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3,self.attention,attention_l2, attention_l3,self.out_features,self.dropout,relu)        
        
         return output
 
@@ -2084,11 +1685,234 @@ class GCNConv_SGRACE(Module):
                + str(self.in_features) + ' -> ' \
                + str(self.out_features) + ')'
 
+class GATConv_SGRACE(Module):
+    """
+    GAT layer 
+    """
+    def __init__(self, state, in_features, out_features, nheads=1, bias=True, dropout=0.2, alpha=0.2, concat=False):
+        super(GATConv_SGRACE, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        #torch.manual_seed(12345)
+
+        self.compute_attention = 1    
+        self.sage = 0
+        self.linear = 0
+        self.dropout = 0
+        self.alpha = 0
+        self.nheads = 1
+        self.concat = 0
+        
+        self.weight_linear = torch.FloatTensor(in_features, out_features)      
+        
+        #print('weight linear')
+        #print(self.weight_linear.shape)
+
+        self.weight = Parameter(torch.FloatTensor(in_features, out_features*self.nheads))
+
+        init.xavier_uniform_(self.weight.data, gain=1.414)
+
+   
+        #init.xavier_uniform_(self.weight_linear.data, gain=1.414)
+        
+        self.attention = Parameter(torch.empty(size=(2*out_features*nheads, 1)))
+        init.xavier_uniform_(self.attention.data, gain=1.414)
+
+        #init.xavier_uniform_(self.attention.data, gain=1.414)
+        #print('first attention')
+        #print(self.attention)
+        self.leakyrelu = LeakyReLU(self.alpha)
+    
+        self.fn = FPYNQ_GAT.apply
+        if(config.acc==1):
+         self.state = state
+         self.my_ip = state.my_ip
+        else:
+         self.my_ip = None   
+        if bias:
+            self.bias = Parameter(torch.FloatTensor(out_features))
+        else:
+            self.register_parameter('bias', None)
+
+    def run_kernel(self):
+        self.my_ip.register_map.CTRL.AP_START = 1
+        while self.my_ip.register_map.CTRL.AP_IDLE == 0:
+            pass
+   
+
+
+    def forward(self, stream,dense, relu,input, edge_index,norm, adj,srelu,weights_l2,weights_l3,weights_l4,attention_l2, attention_l3):
+  
+        
+        st = self.state
+        if(config.acc==1):
+         self.my_ip.register_map.load_weights = config.load_weights
+         #self.my_ip.stream_mode = stream 
+         #self.my_ip.register_map.relu = relu
+         #self.my_ip.register_map.gemm_mode = dense
+         #self.my_ip.register_map.gat_mode = self.compute_attention
+         #self.my_ip.register_map.linear_mode = self.linear
+         #self.my_ip.register_map.sage_mode = self.sage
+         #print("srelu")
+         #print(srelu)
+         st.srelu_buffer[0] = srelu
+
+
+        if(config.instant_layer_count==1):
+         if(dense==0):
+          if(config.show_sparsity==1):
+           zeros = np.count_nonzero(input==0)
+           print("sparsity in the input:",st.layern,"zeros:",zeros/(input.shape[0]*input.shape[1]))   
+          pynq_features = input.to_sparse() #coo
+          nnz_fea = len(pynq_features.values())
+          #print("nnz_fea")
+          #print(nnz_fea)
+          if(config.acc==1):
+           self.my_ip.register_map.nnz_fea1 = nnz_fea
+          st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+          st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+          #values_np = pynq_features.values().data.numpy() 
+          values_np = pynq_features.values()\
+          #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:nnz_fea] = values_np
+
+          write_fea = 0
+          if (write_fea == 1):
+           pynq_features_dense = input.detach().numpy()
+           df = pd.DataFrame(pynq_features_dense) #convert to a dataframe
+           df.to_csv("./fea_dense.txt",index=False,header=False) #save to file  
+           fea_np = pynq_features.indices()[0].numpy() #convert to Numpy array
+           df = pd.DataFrame(fea_np) #convert to a dataframe
+           df.to_csv("./fea_in.txt",sep=',',line_terminator=',',index=False,header=False) #save to file
+           with open('./fea_in.txt', 'a') as f:
+            f.write('\n') 
+           fea_np = pynq_features.indices()[1].numpy() #convert to Numpy array  
+           df = pd.DataFrame(fea_np) #convert to a dataframe
+           df.to_csv("./fea_in.txt",sep=',',line_terminator=',',mode='a',index=False,header=False) #save to file
+           with open('./fea_in.txt', 'a') as f:
+            f.write('\n') 
+           fea_np = pynq_features.values().numpy() #convert to Numpy array  
+           df = pd.DataFrame(fea_np) #convert to a dataframe
+           df.to_csv("./fea_in.txt",sep=',',line_terminator=',',mode='a',index=False,header=False) #save to file
+           print('nnz fea') 
+           print(nnz_fea)
+           #sys.exit()
+
+         else:
+          if(config.device=="cpu"):   
+           xaux = input.detach().numpy()
+          else:
+           xaux = input
+          #xaux = input
+            
+          #support_pynq_q_t = np.transpose(support_pynq_q)
+  
+          xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
+          #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+  
+          #print('edge_index shape') 
+          #print(edge_index.shape)
+          #print('input size') 
+          #print(input.size(0))
+          #print('edge_index shape') 
+          #print(edge_index.shape)
+          #print('input size') 
+          #print(input.size(0))
+
+  
+         nnz_adj = len(norm)
+         #print('nnz_adj')
+         #print(nnz_adj)
+         st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+         st.values_adj_buffer[0:nnz_adj] = norm
+         st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+
+         write_adj = 0
+         if (write_adj == 1):
+          adj_np = edge_index[0].numpy() #convert to Numpy array
+          df = pd.DataFrame(adj_np) #convert to a dataframe
+          df.to_csv("./adj_in.txt",sep=',',line_terminator=',',index=False,header=False) #save to file
+          adj_np = edge_index[1].numpy() #convert to Numpy array  
+          with open('./adj_in.txt', 'a') as f:
+            f.write('\n') 
+          df = pd.DataFrame(adj_np) #convert to a dataframe
+          df.to_csv("./adj_in.txt",sep=',',line_terminator=',',mode='a',index=False,header=False) #save to file
+          adj_np = norm.numpy() #convert to Numpy array  
+          df = pd.DataFrame(adj_np) #convert to a dataframe
+          with open('./adj_in.txt', 'a') as f:
+            f.write('\n')
+          df.to_csv("./adj_in.txt",sep=',',line_terminator=',',mode='a',index=False,header=False) #save to file
+          #sys.exit()
+
+         if(config.acc==1):
+          self.my_ip.register_map.nnz_adj1 = nnz_adj
+
+         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,attention_l2, attention_l3,self.out_features,self.dropout,relu)
+ 
+        else: #2 layer
+         if(st.layern==1):  
+          if(dense==0):
+           pynq_features = input.to_sparse() #coo
+           #print("pynq features length")
+           nnz_fea = len(pynq_features.values())
+           #print(nnz_fea)
+           #new_input = torch.rand(input.shape[0],input.shape[1])
+           #new_input[new_input < 0.99] = 0.0 #1% non-zeros
+           #new_input[new_input != 0.0] = 1.0 #10% non-zeros
+           #new_input[::, 0] = 1.0
+           #pynq_features = new_input.to_sparse() #coo
+           #print("new pynq features length")
+           #nnz_fea = len(pynq_features.values())
+           #print(nnz_fea)
+           if(config.acc==1):
+            self.my_ip.register_map.nnz_fea1 = nnz_fea
+           st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+           st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+           #values_np = pynq_features.values().data.numpy() 
+           values_np = pynq_features.values() 
+           #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:nnz_fea] = values_np
+
+          else:
+           if(config.device=="cpu"):   
+            xaux = input.detach().numpy()
+           else:
+            xaux = input
+           #xaux = input
+           xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
+           #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+           #print('edge_index shape') 
+           #print(edge_index.shape)
+           #print('input size') 
+           #print(input.size(0))
+
+  
+          nnz_adj = len(norm)
+          st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+          st.values_adj_buffer[0:nnz_adj] = norm
+          st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+          if(config.acc==1):
+           self.my_ip.register_map.nnz_adj1 = nnz_adj
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2,weights_l3,self.attention,attention_l2, attention_l3,self.out_features,self.dropout,relu)
+         else: # second layer
+          nnz_adj = len(norm)
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3,self.attention,attention_l2, attention_l3,self.out_features,self.dropout,relu)        
+       
+        return output
+
+    def __repr__(self):
+        return self.__class__.__name__ + ' (' \
+               + str(self.in_features) + ' -> ' \
+               + str(self.out_features) + ')'
+
+
 class SAGEConv_SGRACE(Module):
     """
     GAT layer 
     """
-    def __init__(self, in_features, out_features, bias=True):
+    def __init__(self, state, in_features, out_features, bias=True):
         super(SAGEConv_SGRACE, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -2101,7 +1925,7 @@ class SAGEConv_SGRACE(Module):
         self.compute_attention = 0
         self.nheads = 1
         self.sage=1
-        self.linear=0
+        self.linear=1
         
         self.weight_linear = Parameter(torch.FloatTensor(in_features, out_features))      
         
@@ -2121,7 +1945,8 @@ class SAGEConv_SGRACE(Module):
         
         self.fn = FPYNQ_GAT.apply
         if(config.acc==1):
-         self.my_ip = my_ip
+         self.state = state
+         self.my_ip = state.my_ip
         else:
          self.my_ip = None   
         if bias:
@@ -2130,9 +1955,10 @@ class SAGEConv_SGRACE(Module):
             self.register_parameter('bias', None)
 
 
-    def forward(self, stream,dense, relu,input, edge_index,norm, adj,weights_l2):
+    def forward(self, stream,dense, relu,input, edge_index,norm, adj,srelu,weights_l2,weights_l3,weights_l4,attention_l2, attention_l3):
   
 
+        st = self.state
         if(config.acc==1):
          self.my_ip.stream_mode = stream 
          self.my_ip.register_map.relu = relu
@@ -2147,12 +1973,12 @@ class SAGEConv_SGRACE(Module):
           nnz_fea = len(pynq_features.values())
           if(config.acc==1):
            self.my_ip.register_map.nnz_fea1 = nnz_fea
-          rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-          columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+          st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+          st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
           #values_np = pynq_features.values().data.numpy() 
           values_np = pynq_features.values() 
-          #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:nnz_fea] = values_np
+          #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:nnz_fea] = values_np
 
          else:
           if(config.device=="cpu"):   
@@ -2161,8 +1987,8 @@ class SAGEConv_SGRACE(Module):
            xaux = input
           #xaux = input
           xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-          #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+          #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
           #print('edge_index shape') 
           #print(edge_index.shape)
           #print('input size') 
@@ -2170,27 +1996,27 @@ class SAGEConv_SGRACE(Module):
 
   
          nnz_adj = len(norm)
-         rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-         values_adj_buffer[0:nnz_adj] = norm
-         columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+         st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+         st.values_adj_buffer[0:nnz_adj] = norm
+         st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
          if(config.acc==1):
           self.my_ip.register_map.nnz_adj1 = nnz_adj
 
-         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, self.attention,self.out_features,self.dropout,relu)
+         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)
  
         else: #2 layer
-         if(layern==1):  
+         if(st.layern==1):  
           if(dense==0):
            pynq_features = input.to_sparse() #coo
            nnz_fea = len(pynq_features.values())
            if(config.acc==1):
             self.my_ip.register_map.nnz_fea1 = nnz_fea
-           rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-           columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+           st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+           st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
            #values_np = pynq_features.values().data.numpy() 
            values_np = pynq_features.values() 
-           #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:nnz_fea] = values_np
+           #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:nnz_fea] = values_np
 
           else:
            if(config.device=="cpu"):   
@@ -2199,8 +2025,8 @@ class SAGEConv_SGRACE(Module):
             xaux = input
            #xaux = input
            xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-           #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+           #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
            #print('edge_index shape') 
            #print(edge_index.shape)
            #print('input size') 
@@ -2208,15 +2034,15 @@ class SAGEConv_SGRACE(Module):
 
   
           nnz_adj = len(norm)
-          rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-          values_adj_buffer[0:nnz_adj] = norm
-          columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+          st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+          st.values_adj_buffer[0:nnz_adj] = norm
+          st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
           if(config.acc==1):
            self.my_ip.register_map.nnz_adj1 = nnz_adj
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight,  self.weight_linear,weights_l2,weights_l3,self.attention,self.out_features,self.dropout,relu)
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight,  self.weight_linear,weights_l2,weights_l3,self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)
          else: # second layer
           nnz_adj = len(norm)
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3,self.attention,self.out_features,self.dropout,relu)        
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3,self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)        
        
         return output
 
@@ -2229,7 +2055,7 @@ class SAGEGAT_SGRACE(Module):
     """
     GAT layer 
     """
-    def __init__(self, in_features, out_features, nheads=1, bias=True, dropout=0.2, alpha=0.2,concat=False):
+    def __init__(self, state, in_features, out_features, nheads=1, bias=True, dropout=0.2, alpha=0.2, concat=False):
         super(SAGEGAT_SGRACE, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -2240,7 +2066,7 @@ class SAGEGAT_SGRACE(Module):
         #relu = 0 #when merging two layers OJO 
         self.compute_attention = 1
         self.sage=1
-        self.linear=0
+        self.linear=1
         
         self.weight_linear = Parameter(torch.FloatTensor(in_features, out_features))      
         
@@ -2264,7 +2090,8 @@ class SAGEGAT_SGRACE(Module):
         
         self.fn = FPYNQ_GAT.apply
         if(config.acc==1):
-         self.my_ip = my_ip
+         self.state = state
+         self.my_ip = state.my_ip
         else:
          self.my_ip = None   
         if bias:
@@ -2273,9 +2100,10 @@ class SAGEGAT_SGRACE(Module):
             self.register_parameter('bias', None)
 
 
-    def forward(self, stream,dense, relu,input, edge_index,norm, adj,weights_l2):
+    def forward(self, stream,dense, relu,input, edge_index,norm, adj,srelu,weights_l2,weights_l3,weights_l4,attention_l2, attention_l3):
   
 
+        st = self.state
         if(config.acc==1):
          self.my_ip.stream_mode = stream 
          self.my_ip.register_map.relu = relu
@@ -2290,12 +2118,12 @@ class SAGEGAT_SGRACE(Module):
           nnz_fea = len(pynq_features.values())
           if(config.acc==1):
            self.my_ip.register_map.nnz_fea1 = nnz_fea
-          rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-          columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+          st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+          st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
           #values_np = pynq_features.values().data.numpy() 
           values_np = pynq_features.values() 
-          #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:nnz_fea] = values_np
+          #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:nnz_fea] = values_np
 
          else:
           if(config.device=="cpu"):   
@@ -2304,8 +2132,8 @@ class SAGEGAT_SGRACE(Module):
            xaux = input
           #xaux = input
           xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-          #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+          #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
           #print('edge_index shape') 
           #print(edge_index.shape)
           #print('input size') 
@@ -2313,27 +2141,27 @@ class SAGEGAT_SGRACE(Module):
 
   
          nnz_adj = len(norm)
-         rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-         values_adj_buffer[0:nnz_adj] = norm
-         columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+         st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+         st.values_adj_buffer[0:nnz_adj] = norm
+         st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
          if(config.acc==1):
           self.my_ip.register_map.nnz_adj1 = nnz_adj
 
-         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3,self.attention,self.out_features,self.dropout,relu)
+         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3,self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)
  
         else: #2 layer
-         if(layern==1):  
+         if(st.layern==1):  
           if(dense==0):
            pynq_features = input.to_sparse() #coo
            nnz_fea = len(pynq_features.values())
            if(config.acc==1):
             self.my_ip.register_map.nnz_fea1 = nnz_fea
-           rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-           columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+           st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+           st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
            #values_np = pynq_features.values().data.numpy() 
            values_np = pynq_features.values() 
-           #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:nnz_fea] = values_np
+           #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:nnz_fea] = values_np
 
           else:
            if(config.device=="cpu"):   
@@ -2342,8 +2170,8 @@ class SAGEGAT_SGRACE(Module):
             xaux = input
            #xaux = input
            xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-           #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+           #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
            #print('edge_index shape') 
            #print(edge_index.shape)
            #print('input size') 
@@ -2351,15 +2179,15 @@ class SAGEGAT_SGRACE(Module):
 
   
           nnz_adj = len(norm)
-          rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-          values_adj_buffer[0:nnz_adj] = norm
-          columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+          st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+          st.values_adj_buffer[0:nnz_adj] = norm
+          st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
           if(config.acc==1):
            self.my_ip.register_map.nnz_adj1 = nnz_adj
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,self.out_features,self.dropout,relu)
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)
          else: # second layer
           nnz_adj = len(norm)
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight,  self.weight_linear, weights_l2, weights_l3, self.attention,self.out_features,self.dropout,relu)        
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight,  self.weight_linear, weights_l2, weights_l3, self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)        
        
         return output
 
@@ -2374,7 +2202,7 @@ class Linear_SGRACE(Module):
     """
     Linear layer 
     """
-    def __init__(self, in_features, out_features,bias=False):
+    def __init__(self, state, in_features, out_features, bias=False):
         super(Linear_SGRACE, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -2397,7 +2225,8 @@ class Linear_SGRACE(Module):
      
         self.fn = FPYNQ_GAT.apply
         if(config.acc==1):
-         self.my_ip = my_ip
+         self.state = state
+         self.my_ip = state.my_ip
         else:
          self.my_ip = None   
         if bias:
@@ -2407,10 +2236,11 @@ class Linear_SGRACE(Module):
 
  
 
-    def forward(self, stream, dense, relu, input, edge_index,norm, adj,weights_l2,weights_l3,weights_l4):
+    def forward(self, stream,dense, relu,input, edge_index,norm, adj,srelu,weights_l2,weights_l3,weights_l4,attention_l2, attention_l3):
     
         
 
+        st = self.state
         if(config.acc==1):
          self.my_ip.stream_mode = stream 
          self.my_ip.register_map.relu = relu
@@ -2426,16 +2256,16 @@ class Linear_SGRACE(Module):
           if(config.acc==1):
            self.my_ip.register_map.nnz_fea1 = nnz_fea
           if(config.show_max_min==1):
-           print("active layer: ",layern)   
+           print("active layer: ",st.layern)   
            print('max/min features')   
            print(np.max(input))
            print(np.min(input))
-          rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-          columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+          st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+          st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
           #values_np = pynq_features.values().data.numpy() 
           values_np = pynq_features.values() 
-          #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:nnz_fea] = values_np
+          #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:nnz_fea] = values_np
 
          else:
           if(config.device=="cpu"):   
@@ -2444,20 +2274,20 @@ class Linear_SGRACE(Module):
            xaux = input
           #xaux = input
           if(config.show_max_min==1):
-           print("active layer: ",layern)   
+           print("active layer: ",st.layern)   
            print('max/min features')   
            print(np.max(xaux))
            print(np.min(xaux))
           xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-          #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-          values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
-          #print('layern') 
-          #print(layern)
-          if(config.write_file == 1 and layern == 3):  
+          #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+          st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+          #print('st.layern') 
+          #print(st.layern)
+          if(config.write_file == 1 and st.layern == 3):  
            df = pd.DataFrame(xaux) #convert to a dataframe
            df.to_csv("./linear_in.txt",index=False,header=False) #save to file  
           #print('values fea buffer')
-          #print(values_fea_buffer[0:10])
+          #print(st.values_fea_buffer[0:10])
           #print('edge_index shape') 
           #print(edge_index.shape)
           #print('input size') 
@@ -2465,27 +2295,27 @@ class Linear_SGRACE(Module):
 
   
          nnz_adj = len(norm)
-         #rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-         #values_adj_buffer[0:nnz_adj] = norm
-         #columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+         #st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+         #st.values_adj_buffer[0:nnz_adj] = norm
+         #st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
          if(config.acc==1):
           self.my_ip.register_map.nnz_adj1 = nnz_adj
 
-         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,self.out_features,self.dropout,relu)
+         output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear, weights_l2, weights_l3, self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)
  
         else: #n layer
-         if(layern==1):  
+         if(st.layern==1):  
           if(dense==0):
            pynq_features = input.to_sparse() #coo
            nnz_fea = len(pynq_features.values())
            if(config.acc==1):
             self.my_ip.register_map.nnz_fea1 = nnz_fea
-           rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
-           columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
+           st.rowPtr_fea_buffer[0:nnz_fea] = pynq_features.indices()[0]
+           st.columnIndex_fea_buffer[0:nnz_fea] =  pynq_features.indices()[1]
            #values_np = pynq_features.values().data.numpy() 
            values_np = pynq_features.values() 
-           #values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:nnz_fea] = values_np
+           #st.values_fea_buffer[0:nnz_fea] = values_np.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:nnz_fea] = values_np
 
           else:
            if(config.device=="cpu"):   
@@ -2494,8 +2324,8 @@ class Linear_SGRACE(Module):
             xaux = input
            #xaux = input
            xaux = xaux.reshape(1,xaux.shape[0]*xaux.shape[1])
-           #values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
-           values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
+           #st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux.astype(config.float_type)# *  (2**f_align)
+           st.values_fea_buffer[0:xaux.shape[0]*xaux.shape[1]] = xaux
            #print('edge_index shape') 
            #print(edge_index.shape)
            #print('input size') 
@@ -2503,15 +2333,15 @@ class Linear_SGRACE(Module):
 
   
           nnz_adj = len(norm)
-          rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
-          values_adj_buffer[0:nnz_adj] = norm
-          columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
+          st.rowPtr_adj_buffer[0:nnz_adj]=edge_index[0]
+          st.values_adj_buffer[0:nnz_adj] = norm
+          st.columnIndex_adj_buffer[0:nnz_adj]=edge_index[1]
           if(config.acc==1):
            self.my_ip.register_map.nnz_adj1 = nnz_adj 
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear,weights_l2,weights_l3,self.attention,self.out_features,self.dropout,relu)
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear,weights_l2,weights_l3,self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)
          else: # second layer
           nnz_adj = len(norm)
-          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear,weights_l2, weights_l3,self.attention,self.out_features,self.dropout,relu)        
+          output = self.fn(self.my_ip,self,adj,nnz_adj,input, self.weight, self.weight_linear,weights_l2, weights_l3,self.attention,attention_l2,attention_l3,self.out_features,self.dropout,relu)        
        
         return output
 
@@ -2898,53 +2728,7 @@ def init_SGRACE(number_of_classes):
   scale_fea_buffer = []
   P_w_buffer = []
  
- #models 
- if (config.acc == 1):
-
-  #program
-  #1 layer execution
-  if(config.total_layer_count == 2):
-   if(config.instant_layer_count == 1): 
-    model_buffer[0] = 0x10
-    model_buffer[1] = 0x02 #12 relu 02 no relu important for low bit precision
-   else:
-    #fuse two layer
-    model_buffer[0] =0x14#sparse first input
-    model_buffer[1] =0x1a#sparse
-    #model_buffer[1] =0x1e#dense
-  elif(config.total_layer_count == 3):
-   if(config.instant_layer_count == 1): 
-    model_buffer[0] = 0x10
-    model_buffer[1] = 0x02
-    model_buffer[2] = 0x42
-   else:
-    #fuse three layer
-    model_buffer[0] =0x14#sparse first input
-    model_buffer[1] =0x0c#sparse  no relu
-    #model_buffer[1] =0x1c#sparse  relu
-    #model_buffer[1] =0x0e#dense no relu
-    #model_buffer[1] =0x1e#dense  relu
-    model_buffer[2] =0x48 #sparse
-    #model_buffer[2] =0x4a #dense
-  elif(config.total_layer_count == 4):
-   if(config.instant_layer_count == 1): 
-    model_buffer[0] = 0x10
-    model_buffer[1] = 0x12
-    model_buffer[2] = 0x52
-    model_buffer[3] = 0x42
-   else:
-    #fuse four layer
-    model_buffer[0] =0x14
-    model_buffer[1] =0x1e
-    model_buffer[2] =0x5c #sparse
-    #model_buffer[2] =0x5e #dense
-    model_buffer[3] =0x4a #dense
-    #model_buffer[3] =0x48 #sparse
-
-
-  #fuse two layer
-  #model_buffer[0] = 0x14
-  #model_buffer[1] = 0x1a
+ # model_buffer contents are set by SGRACEState._write_model_program()
 
 
 
@@ -3471,7 +3255,7 @@ def init_SGRACE(number_of_classes):
   my_ip.register_map.bias_offset_1  = bias_buffer.physical_address
   my_ip.register_map.profiling_offset_1  = profiling_buffer.physical_address
   #load model program....(instructions that define the model layer sequence)
-  #NA, terminate, stream, dense, relu, compute_attention, sage, linear
+  #NA, terminate, stream, dense_fea, relu, compute_attention, sage, linear
 
   #gcnconv  0,0,1,0,1,0,0,0
   #gcnconv  0,0,1,1,1,0,0,0
@@ -3482,3 +3266,1066 @@ def init_SGRACE(number_of_classes):
  else:
   print("SGRACE emulation ready!") 
    
+
+# =============================================================================
+# SGRACE EXTENSIONS
+# =============================================================================
+# Contents added below:
+#   1. SGRACEState  — centralised dataclass replacing the ~40 bare module-level
+#                     globals produced by init_SGRACE / consumed by FPYNQ_GAT.
+#   2. _SGRACELayerBase — shared DMA boilerplate for new layer classes.
+#   3. GINConv_SGRACE   — Graph Isomorphism Network convolution.
+#   4. TransformerConv_SGRACE — Graph Transformer convolution.
+#
+# Instruction byte layout (8-bit ISA):
+#   [7] sage     — residual self-loop branch (weight_linear path)
+#   [6] linear   — skip aggregation, run weight_linear only
+#   [5] gat      — learnable edge-attention scoring
+#   [4] relu     — fused ReLU on output
+#   [3] s_in     — feature input is streamed
+#   [2] s_out    — feature output is streamed to next layer
+#   [1:0] gemm   — matrix-multiply mode
+#
+# GINConv        → sage=1, linear=1, gat=0
+# TransformerConv → sage=0/1, linear=0, gat=1
+# =============================================================================
+
+import math
+from dataclasses import dataclass, field
+
+
+# ---------------------------------------------------------------------------
+# 1.  SGRACEState
+# ---------------------------------------------------------------------------
+
+@dataclass
+class SGRACEState:
+    """
+    Centralised hardware state object — replaces the ~40 bare ``global``
+    variables that ``init_SGRACE`` scattered across the module namespace.
+
+    Usage
+    -----
+    Call ``SGRACEState.init(number_of_classes)`` **once** at startup in place
+    of the old ``init_SGRACE(number_of_classes)`` call.  Every layer object
+    receives ``state=SGRACEState.get()`` (or the return value of ``.init()``
+    directly).
+
+    Example
+    -------
+    ::
+
+        state = SGRACEState.init(number_of_classes=7)
+        conv  = GINConv_SGRACE(64, 32, state=state)
+        tconv = TransformerConv_SGRACE(32, 16, state=state)
+    """
+
+    # ── layer counter ────────────────────────────────────────────────────────
+    layern:               int   = 1
+    total_layer_count:    int   = 2
+    instant_layer_count:  int   = 1
+
+    # ── fixed-point pipeline ─────────────────────────────────────────────────
+    frac_bits_o:          int   = 16
+    frac_bits:            int   = 8
+    internal_quantization: int  = 16
+
+    # ── quantisation scale / zero-point (layer 1, 2, last-linear) ───────────
+    w_s:   float = 1.0;  w_z:   int = 0;  w_s_o:   float = 1.0
+    w_s2:  float = 1.0;  w_z2:  int = 0;  w_s_o2:  float = 1.0
+    w_sl:  float = 1.0;  w_zl:  int = 0;  w_s_ol:  float = 1.0
+    a_s:   float = 1.0;  a_z:   int = 0;  a_s_o:   float = 1.0
+    f_s:   float = 1.0;  f_z:   int = 0;  f_s_o:   float = 1.0
+    f_s2:  float = 1.0;  f_z2:  int = 0;  f_s_o2:  float = 1.0
+    f_sl:  float = 1.0;  f_zl:  int = 0;  f_s_ol:  float = 1.0
+    l_sl:  float = 1.0;  l_zl:  int = 0;  l_s_ol:  float = 1.0
+    go_s:  float = 1.0;  go_z:  int = 0;  go_s_o:  float = 1.0
+
+    # ── dequantisation factors ───────────────────────────────────────────────
+    deq_o:  float = 1.0
+    deq_o2: float = 1.0
+    deq_ol: float = 1.0
+    deq_gw: float = 1.0
+    deq_gi: float = 1.0
+
+    # ── internal pipeline scale shifts ───────────────────────────────────────
+    scale_fea:  int = 3
+    scale_fea2: int = 3
+    scale_feal: int = 2
+
+    # ── running calibration trackers ─────────────────────────────────────────
+    cur_max_fea:      float = 0.0
+    cur_max_fea2:     float = 0.0
+    global_max_input: float = 0.0
+    global_min_input: float = 0.0
+
+    # ── PYNQ DMA buffers (populated by init) ─────────────────────────────────
+    model_buffer:                   object = None
+    P_w_buffer:                     object = None
+    srelu_buffer:                   object = None
+    quantization_scale_fea_buffer:  object = None
+    quantization_scale_w_buffer:    object = None
+    quantization_scale_l_buffer:    object = None
+    deq_factor_buffer:              object = None
+    scale_fea_buffer:               object = None
+    attention_buffer:               object = None
+    bias_buffer:                    object = None
+    profiling_buffer:               object = None
+    rowPtr_fea_buffer:              object = None
+    columnIndex_fea_buffer:         object = None
+    values_fea_buffer:              object = None
+    rowPtr_adj_buffer:              object = None
+    columnIndex_adj_buffer:         object = None
+    values_adj_buffer:              object = None
+    B_buffer:                       object = None
+    B2_buffer:                      object = None
+    D_buffer:                       object = None
+    E_buffer:                       object = None
+    S_buffer:                       object = None
+    my_ip:                          object = None
+
+    # ── singleton bookkeeping ─────────────────────────────────────────────────
+    _instance: object = field(
+        default=None, repr=False, compare=False)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def get(cls):
+        """Return the singleton created by :meth:`init`."""
+        if cls._instance is None:
+            raise RuntimeError(
+                "SGRACEState.init() has not been called. "
+                "Call it once before constructing any SGRACE layer."
+            )
+        return cls._instance
+
+    # ─────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def init(cls, number_of_classes: int, op_type: str = "GCN"):
+        """
+        Allocate PYNQ buffers and compute all quantisation constants.
+
+        This is the drop-in replacement for ``init_SGRACE(number_of_classes)``.
+        It returns a state object instead of polluting the module namespace.
+        The legacy ``init_SGRACE`` function is still present in this file for
+        backward compatibility with existing model scripts.
+        """
+        st = cls()
+
+        # ── PYNQ overlay ──────────────────────────────────────────────────────
+        if config.acc == 1:
+            ol = Overlay("gat_all_unsigned.bit")
+            st.my_ip = ol.mmult_top_0
+
+        # ── quantisation range setup ──────────────────────────────────────────
+        st._setup_quant_ranges()
+
+        # ── quantisation constants ────────────────────────────────────────────
+        st.w_s_o,  st.w_s,  st.w_z  = generate_quantization_qbits_constants(
+            st._w_min,  st._w_max,  config.w_qbits)
+        st.w_s_o2, st.w_s2, st.w_z2 = generate_quantization_qbits_constants(
+            st._w_min2, st._w_max2, config.w_qbits)
+        st.w_s_ol, st.w_sl, st.w_zl = generate_quantization_qbits_constants(
+            st._w_minl, st._w_maxl, config.w_qbitsl)
+        st.a_s_o,  st.a_s,  st.a_z  = generate_quantization_uqbits_constants(
+            st._a_min,  st._a_max,  config.w_qbits)
+        st.f_s_o,  st.f_s,  st.f_z  = generate_quantization_uqbits_constants(
+            st._f_min,  st._f_max,  config.w_qbits)
+        st.f_s_o2, st.f_s2, st.f_z2 = generate_quantization_uqbits_constants(
+            st._f_min2, st._f_max2, config.w_qbits)
+        st.f_s_ol, st.f_sl, st.f_zl = generate_quantization_uqbits_constants(
+            st._f_minl, st._f_maxl, config.w_qbitsl)
+        st.l_s_ol, st.l_sl, st.l_zl = generate_quantization_qbits_constants(
+            st._l_minl, st._l_maxl, config.w_qbitsl)
+
+        go_min, go_max = -0.10, 0.10
+        st.go_s_o, st.go_s, st.go_z = generate_quantization_uqbits_constants(
+            go_min, go_max, 8)
+
+        # ── dequantisation factors ────────────────────────────────────────────
+        st.deq_o  = st.w_s_o  * st.f_s_o  * st.a_s_o
+        st.deq_o2 = st.w_s_o2 * st.f_s_o2 * st.a_s_o
+        st.deq_ol = st.w_s_ol * st.l_s_ol
+        st.deq_gw = st.f_s_o  * st.a_s_o  * st.go_s_o
+        st.deq_gi = st.a_s_o  * st.go_s_o * st.w_s_o
+        st._apply_qbit_deq_corrections()
+
+        # ── PYNQ buffer allocation ────────────────────────────────────────────
+        st._allocate_buffers(number_of_classes)
+
+        # ── model-program buffer ──────────────────────────────────────────────
+        if config.acc == 1:
+            st._write_model_program(op_type)
+
+        # ── write all static buffer addresses to hardware register map ────────
+        if config.acc == 1:
+            st._write_register_map()
+
+        cls._instance = st
+        return st
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Private helpers
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def _setup_quant_ranges(self):
+        """Per-bit-width quantisation range lookup — replaces the scattered
+        if/elif blocks in ``init_SGRACE``."""
+        qb  = config.w_qbits
+        qbl = config.w_qbitsl
+
+        _ranges = {
+            8: dict(w=(-1.0, 1.0), w2=(-1.0, 1.0), a=(0.0, 1.0), f=(0.0, 1.0),
+                    f2=(0.0, 1.0), scale_fea=3, scale_fea2=3, deq_shift=1),
+            4: dict(w=(-0.3, 0.3), w2=(-0.6, 0.6), a=(0.0, 0.5), f=(0.0, 1.0),
+                    f2=(0.0, 1.0), scale_fea=3, scale_fea2=3, deq_shift=3),
+            2: dict(w=(-0.1, 0.1), w2=(-0.1, 0.1), a=(0.0, 0.1), f=(0.0, 1.0),
+                    f2=(0.0, 1.0), scale_fea=1, scale_fea2=1, deq_shift=1),
+            1: dict(w=(-0.1, 0.1), w2=(-0.1, 0.1), a=(0.0, 0.1), f=(0.0, 1.0),
+                    f2=(0.0, 1.0), scale_fea=1, scale_fea2=1, deq_shift=1),
+        }
+        _ranges_l = {
+            32: dict(wl=(-0.5, 0.5), fl=(0.0, 8.0), ll=(-4.0, 4.0),
+                     scale_feal=0, deq_shift_l=0),
+            8:  dict(wl=(-1.0, 1.0), fl=(0.0, 8.0), ll=(-4.0, 4.0),
+                     scale_feal=2, deq_shift_l=2),
+            4:  dict(wl=(-0.5, 0.5), fl=(0.0, 2.0), ll=(-1.0, 1.0),
+                     scale_feal=1, deq_shift_l=1),
+            1:  dict(wl=(-0.1, 0.1), fl=(0.0, 0.1), ll=(-0.1, 0.1),
+                     scale_feal=1, deq_shift_l=1),
+        }
+
+        r  = _ranges.get(qb,  _ranges[8])
+        rl = _ranges_l.get(qbl, _ranges_l[8])
+
+        self._w_min,  self._w_max  = r['w']
+        self._w_min2, self._w_max2 = r['w2']
+        self._a_min,  self._a_max  = r['a']
+        self._f_min,  self._f_max  = r['f']
+        self._f_min2, self._f_max2 = r['f2']
+        self.scale_fea              = r['scale_fea']
+        self.scale_fea2             = r['scale_fea2']
+        self._deq_shift             = r['deq_shift']
+
+        self._w_minl, self._w_maxl = rl['wl']
+        self._f_minl, self._f_maxl = rl['fl']
+        self._l_minl, self._l_maxl = rl['ll']
+        self.scale_feal             = rl['scale_feal']
+        self._deq_shift_l           = rl['deq_shift_l']
+
+        _falign = {8: 0, 4: 4, 2: 6, 1: 7}
+        _betaqu = {8: 255, 4: 15, 2: 2, 1: 1}
+        self._f_align  = _falign.get(qb,  0)
+        self._beta_qu  = _betaqu.get(qb,  255)
+        self._f_alignl = _falign.get(qbl, 0)
+        self._beta_qul = _betaqu.get(qbl, 255)
+
+    def _apply_qbit_deq_corrections(self):
+        """Scale deq factors by hardware internal pipeline shift."""
+        self.deq_o  *= pow(2, self._deq_shift)
+        self.deq_o2 *= pow(2, self._deq_shift)
+        if self._deq_shift_l > 0:
+            self.deq_ol *= pow(2, self._deq_shift_l)
+        _iq = {8: 16, 4: 8, 2: 4, 1: 4}
+        self.internal_quantization = _iq.get(config.w_qbits, 16)
+
+    def _allocate_buffers(self, number_of_classes: int):
+        """Allocate all PYNQ DMA buffers (acc=1) or set to empty lists (acc=0)."""
+        if config.acc != 1:
+            for attr in (
+                "model_buffer", "P_w_buffer", "srelu_buffer",
+                "quantization_scale_fea_buffer", "quantization_scale_w_buffer",
+                "quantization_scale_l_buffer", "deq_factor_buffer",
+                "scale_fea_buffer", "attention_buffer", "bias_buffer",
+                "profiling_buffer", "rowPtr_fea_buffer",
+                "columnIndex_fea_buffer", "values_fea_buffer",
+                "rowPtr_adj_buffer", "columnIndex_adj_buffer",
+                "values_adj_buffer", "B_buffer", "B2_buffer",
+                "D_buffer", "E_buffer", "S_buffer",
+            ):
+                setattr(self, attr, [])
+            return
+
+        ft = config.float_type    # np.float32
+        mt = config.model_type    # np.uint8
+
+        self.model_buffer                  = allocate(5,               dtype=mt)
+        self.P_w_buffer                    = allocate(5,               dtype=mt)
+        self.srelu_buffer                  = allocate(5,               dtype=ft)
+        self.quantization_scale_fea_buffer = allocate(5,               dtype=ft)
+        self.quantization_scale_w_buffer   = allocate(5,               dtype=ft)
+        self.quantization_scale_l_buffer   = allocate(5,               dtype=ft)
+        self.deq_factor_buffer             = allocate(5,               dtype=ft)
+        self.scale_fea_buffer              = allocate(5,               dtype=mt)
+        self.attention_buffer              = allocate(config.P_w * 2,  dtype=ft)
+        self.bias_buffer                   = allocate(1024,            dtype=np.int32)
+        self.profiling_buffer              = allocate(16,              dtype=np.int64)
+        self.rowPtr_fea_buffer             = allocate(config.NNZ_fea,  dtype=np.int32)
+        self.columnIndex_fea_buffer        = allocate(config.NNZ_fea,  dtype=np.int32)
+        self.values_fea_buffer             = allocate(config.NNZ_fea,  dtype=ft)
+        self.rowPtr_adj_buffer             = allocate(config.NNZ_adj,  dtype=np.int32)
+        self.columnIndex_adj_buffer        = allocate(config.NNZ_adj,  dtype=np.int32)
+        self.values_adj_buffer             = allocate(config.NNZ_adj,  dtype=ft)
+        sz = config.N_adj * config.P_w + 2 * config.P_w * config.P_w
+        self.B_buffer  = allocate(sz,             dtype=ft)
+        self.B2_buffer = allocate(sz,             dtype=ft)
+        self.D_buffer  = allocate(sz,             dtype=ft)
+        self.E_buffer  = allocate(config.NNZ_adj, dtype=ft)
+        self.S_buffer  = allocate(config.NNZ_adj, dtype=ft)
+
+        # Populate scale / deq / srelu buffers
+        self.quantization_scale_fea_buffer[0] = 1.0 / self.f_s
+        self.quantization_scale_fea_buffer[1] = 1.0 / self.f_s2
+        self.quantization_scale_fea_buffer[2] = 1.0 / self.f_sl
+        self.quantization_scale_fea_buffer[3] = 1.0 / self.f_sl
+
+        self.quantization_scale_w_buffer[0] = 1.0 / self.w_s
+        self.quantization_scale_w_buffer[1] = 1.0 / self.w_s2
+        self.quantization_scale_w_buffer[2] = 1.0 / self.w_sl
+        self.quantization_scale_w_buffer[3] = 1.0 / self.w_sl
+
+        self.quantization_scale_l_buffer[0] = 1.0 / self.l_sl
+        self.quantization_scale_l_buffer[1] = 1.0 / self.l_sl
+        self.quantization_scale_l_buffer[2] = 1.0 / self.l_sl
+        self.quantization_scale_l_buffer[3] = 1.0 / self.l_sl
+
+        self.deq_factor_buffer[0] = self.deq_o
+        self.deq_factor_buffer[1] = self.deq_o2
+        self.deq_factor_buffer[2] = self.deq_ol
+
+        self.scale_fea_buffer[0] = self.scale_fea
+        self.scale_fea_buffer[1] = self.scale_fea2
+        self.scale_fea_buffer[2] = self.scale_feal
+
+        for i in range(5):
+            self.srelu_buffer[i] = 0.0
+
+        lc = config.total_layer_count
+        hc = config.hidden_channels
+        for i in range(lc - 1):
+            self.P_w_buffer[i] = hc
+        self.P_w_buffer[lc - 1] = number_of_classes
+
+        ip = self.my_ip
+        ip.register_map.f_align              = self._f_align
+        ip.register_map.beta_qu              = self._beta_qu
+        ip.register_map.f_alignl             = self._f_alignl
+        ip.register_map.beta_qul             = self._beta_qul
+        ip.register_map.quantized_multiplier = self.internal_quantization
+
+    @staticmethod
+    def _enc(sage=0, linear=0, gat=0, relu=0, s_in=0, s_out=0,
+             dense_fea=0, dense_adj=0):
+        """
+        Encode one ISA instruction byte from its semantic field values.
+
+        Bitfield layout (bit 0 = LSB):
+            [7] sage      — residual self-loop branch (GraphSAGE / GIN)
+            [6] linear    — linear-only layer (no graph aggregation)
+            [5] gat       — learnable attention scoring
+            [4] relu      — fused ReLU on output
+            [3] s_in      — feature input streamed from previous layer
+            [2] s_out     — feature output streamed to next layer
+            [1] dense_fea — combination step uses dense input (XW dense)
+            [0] dense_adj — aggregation step uses dense mode (AXW dense)
+        """
+        return (sage    << 7 | linear   << 6 | gat     << 5 |
+                relu    << 4 | s_in     << 3 | s_out   << 2 |
+                dense_fea << 1 | dense_adj << 0)
+
+    @staticmethod
+    def _op_flags(op):
+        """
+        Return (sage, linear, gat) flag triple for a canonical operator name.
+
+        Recognised names (case-insensitive):
+            "GCN"         sage=0, linear=0, gat=0
+            "GAT"         sage=0, linear=0, gat=1
+            "SAGE"        sage=1, linear=1, gat=0
+            "SAGEGAT"     sage=1, linear=1, gat=1
+            "GIN"         sage=1, linear=1, gat=0  (same ISA path as SAGE)
+            "TRANSFORMER" sage=0, linear=0, gat=1  (same ISA path as GAT)
+            "LINEAR"      sage=0, linear=1, gat=0  (classifier linear layer)
+
+        Note: SAGE requires both sage=1 and linear=1 because the residual
+        self-loop branch (weight_linear) must be enabled alongside aggregation.
+        """
+        op = op.upper()
+        aliases = {"GIN": "SAGE", "TRANSFORMER": "GAT"}
+        op = aliases.get(op, op)
+        #              sage  linear  gat
+        table = {
+            "GCN":     (0,   0,      0),
+            "GAT":     (0,   0,      1),
+            "SAGE":    (1,   1,      0),
+            "SAGEGAT": (1,   1,      1),
+            "LINEAR":  (0,   1,      0),
+        }
+        if op not in table:
+            raise ValueError(
+                f"Unknown operator {op!r}. "
+                "Use: GCN, GAT, SAGE, SAGEGAT, GIN, Transformer, or Linear.")
+        return table[op]
+
+    def _write_model_program(self, program):
+        """
+        Encode a layer sequence into ``model_buffer``.
+
+        ``program`` can be:
+
+        A) A shorthand string — uniform operator for all graph layers,
+           followed by a Linear classifier.  The streaming flags
+           (s_in / s_out) and dense/sparse input flags are derived
+           automatically from layer position and instant_layer_count:
+
+               state.set_model("GAT")
+               state.set_model("GCN")
+
+        B) A list of layer descriptor dicts, one per layer including
+           the final classifier.  Each dict may contain:
+
+               op        : str — operator name (required)
+                                 "GCN" | "GAT" | "SAGE" | "SAGEGAT" |
+                                 "GIN" | "Transformer" | "Linear"
+               relu      : int — 1 = fused ReLU on output  (default 1
+                                 for graph layers, 0 for Linear)
+               dense_fea : int — 1 = feature matrix (XW) is dense
+                                 (default 0 for layer 0, 1 for subsequent layers)
+               dense_adj : int — 1 = adjacency matrix (A) is dense
+                                 (default 0 for all layers)
+
+           Streaming flags (s_in / s_out) are always set automatically
+           from instant_layer_count — do not set them manually.
+
+           Example — two GCN layers then a Linear classifier:
+               state.set_model([
+                   {"op": "GCN",    "relu": 1, "dense_fea": 0, "dense_adj": 0},
+                   {"op": "GCN",    "relu": 0, "dense_fea": 1, "dense_adj": 0},
+                   {"op": "Linear", "relu": 0, "dense_fea": 1, "dense_adj": 0},
+               ])
+
+           Example — mixed GCN + GAT:
+               state.set_model([
+                   {"op": "GCN",    "relu": 1, "dense_fea": 0, "dense_adj": 0},
+                   {"op": "GAT",    "relu": 0, "dense_fea": 1, "dense_adj": 0},
+                   {"op": "Linear", "relu": 0, "dense_fea": 1, "dense_adj": 0},
+               ])
+
+           Example — three graph layers + Linear (4-layer model):
+               state.set_model([
+                   {"op": "GAT",    "relu": 1, "dense_fea": 0, "dense_adj": 0},
+                   {"op": "GAT",    "relu": 1, "dense_fea": 1, "dense_adj": 0},
+                   {"op": "GCN",    "relu": 0, "dense_fea": 1, "dense_adj": 0},
+                   {"op": "Linear", "relu": 0, "dense_fea": 1, "dense_adj": 0},
+               ])
+        """
+        enc = SGRACEState._enc
+        ilc = config.instant_layer_count
+        mb  = self.model_buffer
+
+        # ── A: shorthand string → expand to descriptor list ───────────────────
+        if isinstance(program, str):
+            op  = program.upper()
+            if op in ("GIN",): op = "SAGE"
+            if op in ("TRANSFORMER",): op = "GAT"
+            lc  = config.total_layer_count
+            # Graph layers: layer 0 sparse (dense_fea=0), remaining dense (dense_fea=1);
+            # dense_adj=0 for all layers by default; relu=1 for all except last graph layer
+            # Except the last graph layer before Linear has relu=0
+            descs = []
+            for i in range(lc - 1):          # graph conv layers
+                descs.append({
+                    "op":    op,
+                    "relu":  1 if i < lc - 2 else 0,
+                    "dense_fea": 0 if i == 0 else 1,
+                    "dense_adj": 0,
+                })
+            descs.append({"op": "Linear", "relu": 0, "dense_fea": 1, "dense_adj": 0})
+            program = descs
+
+        # ── B: descriptor list → encode each layer byte ───────────────────────
+        n = len(program)
+        if n > len(mb):
+            raise ValueError(
+                f"Program has {n} layers but model_buffer only holds "
+                f"{len(mb)}. Increase config.total_layer_count.")
+
+        chained = (ilc > 1)
+
+        for i, desc in enumerate(program):
+            op_name = desc["op"].upper()
+            is_last = (i == n - 1)
+            is_first = (i == 0)
+            is_linear = (op_name in ("LINEAR",))
+
+            sage, linear, gat = SGRACEState._op_flags(op_name)
+            relu       = desc.get("relu",  0 if is_linear else 1)
+            dense_fea  = desc.get("dense_fea", 0 if is_first else 1)
+            dense_adj  = desc.get("dense_adj", 0)
+
+            # Streaming flags derived automatically from chained mode
+            if chained:
+                s_out = 0 if is_last  else 1
+                s_in  = 0 if is_first else 1
+                # In chained mode dense flags are carried via stream
+                # for intermediate layers
+                if not is_last and not is_first:
+                    dense_fea = 0
+                    dense_adj = 0
+            else:
+                s_in  = 0
+                s_out = 0
+
+            mb[i] = enc(sage=sage, linear=linear, gat=gat,
+                        relu=relu, s_in=s_in, s_out=s_out,
+                        dense_fea=dense_fea, dense_adj=dense_adj)
+
+    def _write_register_map(self):
+        """
+        Write all static buffer physical addresses to the hardware register map.
+        This mirrors lines 3551-3600 of the original init_SGRACE and MUST be
+        called after buffers are allocated, otherwise the FPGA has no valid
+        DMA addresses and will hang on AP_START.
+        """
+        ip = self.my_ip
+        ip.register_map.load_weights                    = config.load_weights
+        ip.register_map.gat_mode                        = 0
+        ip.register_map.model_offset_1                  = self.model_buffer.physical_address
+        ip.register_map.scale_fea_offset_1              = self.scale_fea_buffer.physical_address
+        ip.register_map.quantization_scale_fea_offset_1 = self.quantization_scale_fea_buffer.physical_address
+        ip.register_map.quantization_scale_w_offset_1   = self.quantization_scale_w_buffer.physical_address
+        ip.register_map.quantization_scale_lin_offset_1 = self.quantization_scale_l_buffer.physical_address
+        ip.register_map.srelu_offset_1                  = self.srelu_buffer.physical_address
+        ip.register_map.deq_factor_offset_1             = self.deq_factor_buffer.physical_address
+        ip.register_map.P_w_offset_1                    = self.P_w_buffer.physical_address
+        ip.register_map.E1_offset_1                     = self.E_buffer.physical_address
+        ip.register_map.E2_offset_1                     = self.E_buffer.physical_address
+        ip.register_map.E3_offset_1                     = self.E_buffer.physical_address
+        ip.register_map.E4_offset_1                     = self.E_buffer.physical_address
+        ip.register_map.S1_offset_1                     = self.S_buffer.physical_address
+        ip.register_map.S2_offset_1                     = self.S_buffer.physical_address
+        ip.register_map.S3_offset_1                     = self.S_buffer.physical_address
+        ip.register_map.S4_offset_1                     = self.S_buffer.physical_address
+        ip.register_map.layer_count                     = config.instant_layer_count
+        ip.register_map.ate_m_offset_1                  = self.attention_buffer.physical_address
+        ip.register_map.B_offset_1                      = self.B_buffer.physical_address
+        ip.register_map.B2_offset_1                     = self.B2_buffer.physical_address
+        ip.register_map.rowPtr_fea1_offset_1            = self.rowPtr_fea_buffer.physical_address
+        ip.register_map.rowPtr_fea2_offset_1            = self.rowPtr_fea_buffer.physical_address
+        ip.register_map.rowPtr_fea3_offset_1            = self.rowPtr_fea_buffer.physical_address
+        ip.register_map.rowPtr_fea4_offset_1            = self.rowPtr_fea_buffer.physical_address
+        ip.register_map.columnIndex_fea1_offset_1       = self.columnIndex_fea_buffer.physical_address
+        ip.register_map.columnIndex_fea2_offset_1       = self.columnIndex_fea_buffer.physical_address
+        ip.register_map.columnIndex_fea3_offset_1       = self.columnIndex_fea_buffer.physical_address
+        ip.register_map.columnIndex_fea4_offset_1       = self.columnIndex_fea_buffer.physical_address
+        ip.register_map.values_fea1_offset_1            = self.values_fea_buffer.physical_address
+        ip.register_map.values_fea2_offset_1            = self.values_fea_buffer.physical_address
+        ip.register_map.values_fea3_offset_1            = self.values_fea_buffer.physical_address
+        ip.register_map.values_fea4_offset_1            = self.values_fea_buffer.physical_address
+        ip.register_map.rowPtr_adj1_offset_1            = self.rowPtr_adj_buffer.physical_address
+        ip.register_map.rowPtr_adj2_offset_1            = self.rowPtr_adj_buffer.physical_address
+        ip.register_map.rowPtr_adj3_offset_1            = self.rowPtr_adj_buffer.physical_address
+        ip.register_map.rowPtr_adj4_offset_1            = self.rowPtr_adj_buffer.physical_address
+        ip.register_map.columnIndex_adj1_offset_1       = self.columnIndex_adj_buffer.physical_address
+        ip.register_map.columnIndex_adj2_offset_1       = self.columnIndex_adj_buffer.physical_address
+        ip.register_map.columnIndex_adj3_offset_1       = self.columnIndex_adj_buffer.physical_address
+        ip.register_map.columnIndex_adj4_offset_1       = self.columnIndex_adj_buffer.physical_address
+        ip.register_map.values_adj1_offset_1            = self.values_adj_buffer.physical_address
+        ip.register_map.values_adj2_offset_1            = self.values_adj_buffer.physical_address
+        ip.register_map.values_adj3_offset_1            = self.values_adj_buffer.physical_address
+        ip.register_map.values_adj4_offset_1            = self.values_adj_buffer.physical_address
+        ip.register_map.quantized_multiplier            = self.internal_quantization
+        ip.register_map.bias_offset_1                   = self.bias_buffer.physical_address
+        ip.register_map.profiling_offset_1              = self.profiling_buffer.physical_address
+
+    def print_model_program(self):
+        """
+        Print the contents of model_buffer with a human-readable decode of
+        every instruction byte.
+
+        Instruction byte bitfield (bit 0 = LSB):
+            [7] sage    — residual self-loop branch (GraphSAGE / GIN)
+            [6] linear  — linear-only layer (no graph aggregation)
+            [5] gat     — learnable attention scoring
+            [4] relu    — fused ReLU on output
+            [3] s_in    — feature input streamed from previous layer
+            [2] s_out   — feature output streamed to next layer
+            [1] dense_fea — combination step (XW) uses dense input
+            [0] dense_adj — aggregation step (AXW) uses dense mode
+        """
+        lc = config.total_layer_count
+
+        def decode(byte):
+            sage   = (byte >> 7) & 1
+            linear = (byte >> 6) & 1
+            gat    = (byte >> 5) & 1
+            relu   = (byte >> 4) & 1
+            s_in   = (byte >> 3) & 1
+            s_out  = (byte >> 2) & 1
+            dense_fea = (byte >> 1) & 1
+            dense_adj = (byte >> 0) & 1
+
+            # Derive operator name — check sage first since SAGE sets both
+            # sage=1 and linear=1; plain Linear has sage=0, linear=1
+            if sage and gat:
+                op = "SAGEGAT"
+            elif sage:
+                op = "SAGE/GIN"
+            elif gat:
+                op = "GAT/Transformer"
+            elif linear:
+                op = "Linear"
+            else:
+                op = "GCN"
+
+            flags = []
+            if relu:      flags.append("relu")
+            if s_in:      flags.append("s_in")
+            if s_out:     flags.append("s_out")
+            if dense_fea: flags.append("dense_fea")
+            if dense_adj: flags.append("dense_adj")
+            flag_str = ", ".join(flags) if flags else "—"
+
+            return op, flag_str
+
+        print(f"model_buffer  (total_layer_count={lc}, "
+              f"instant_layer_count={config.instant_layer_count})")
+        print(f"  {'Slot':<6} {'Byte':<8} {'Operator':<18} {'Flags'}")
+        print(f"  {'-'*6} {'-'*8} {'-'*18} {'-'*30}")
+        for i in range(lc):
+            byte = int(self.model_buffer[i])
+            op, flags = decode(byte)
+            print(f"  [{i}]    0x{byte:02X}     {op:<18} {flags}")
+
+    def set_model(self, program):
+        """
+        Write a new instruction program into the hardware model buffer.
+
+        ``program`` is either:
+
+        - A shorthand string for a uniform model, e.g. ``"GAT"``.
+        - A list of layer descriptor dicts for a custom model, e.g.::
+
+            state.set_model([
+                {"op": "GCN",    "relu": 1, "dense": 0},
+                {"op": "GAT",    "relu": 0, "dense": 1},
+                {"op": "Linear", "relu": 0, "dense": 1},
+            ])
+
+        See ``_write_model_program`` for full descriptor syntax.
+        """
+        if config.acc == 1:
+            self._write_model_program(program)
+            self.my_ip.register_map.model_offset_1 = self.model_buffer.physical_address
+        label = program if isinstance(program, str) else "custom"
+        print(f"Model program updated: {label}")
+        self.print_model_program()
+
+    def advance_layer(self):
+        """Increment the active-layer counter, wrapping at total_layer_count."""
+        if self.layern < self.total_layer_count:
+            self.layern += 1
+        else:
+            self.layern = 1
+
+    def update_max_fea(self, raw_int_val: int):
+        """Update running feature-max trackers from hardware register readout."""
+        fval = float(raw_int_val) / (2 ** self.frac_bits_o)
+        if self.layern == 1:
+            if fval > self.cur_max_fea:
+                self.cur_max_fea = fval
+        else:
+            if fval > self.cur_max_fea2:
+                self.cur_max_fea2 = fval
+
+
+# ---------------------------------------------------------------------------
+# 2.  _SGRACELayerBase — shared DMA boilerplate
+# ---------------------------------------------------------------------------
+
+class _SGRACELayerBase(Module):
+    """
+    Internal base class shared by GINConv_SGRACE and TransformerConv_SGRACE.
+
+    Encapsulates the repeated DMA fill / kernel-launch / readback pattern
+    that is duplicated verbatim across the original GCNConv_SGRACE,
+    GATConv_SGRACE, SAGEConv_SGRACE, and Linear_SGRACE classes.
+    """
+
+    def __init__(self, in_features: int, out_features: int,
+                 state: SGRACEState, bias: bool = False):
+        super().__init__()
+        self.in_features  = in_features
+        self.out_features = out_features
+        self.state        = state
+        self.nheads       = 1
+        self.alpha        = 0.0
+        self.dropout      = 0.0
+        self.leakyrelu    = LeakyReLU(self.alpha)
+        self.my_ip        = state.my_ip if config.acc == 1 else None
+
+        if bias:
+            self.bias = Parameter(torch.FloatTensor(out_features))
+        else:
+            self.register_parameter("bias", None)
+
+    def _fill_feature_buffer(self, input: torch.Tensor, dense: int):
+        st = self.state
+        if dense == 0:
+            coo = input.to_sparse()
+            nnz = len(coo.values())
+            self.my_ip.register_map.nnz_fea1 = nnz
+            st.rowPtr_fea_buffer[0:nnz]      = coo.indices()[0]
+            st.columnIndex_fea_buffer[0:nnz] = coo.indices()[1]
+            st.values_fea_buffer[0:nnz]      = coo.values()
+        else:
+            xaux = (input.detach().numpy()
+                    if config.device == "cpu" else input)
+            flat = xaux.reshape(1, xaux.shape[0] * xaux.shape[1])
+            st.values_fea_buffer[0:flat.shape[1]] = flat
+
+    def _fill_adj_buffer(self, edge_index, norm) -> int:
+        st  = self.state
+        nnz = len(norm)
+        st.rowPtr_adj_buffer[0:nnz]      = edge_index[0]
+        st.values_adj_buffer[0:nnz]      = norm
+        st.columnIndex_adj_buffer[0:nnz] = edge_index[1]
+        self.my_ip.register_map.nnz_adj1 = nnz
+        return nnz
+
+    def _run_kernel(self) -> float:
+        t0 = time.time()
+        self.my_ip.register_map.CTRL.AP_START = 1
+        while self.my_ip.register_map.CTRL.AP_IDLE == 0:
+            pass
+        return 1000.0 * (time.time() - t0)
+
+    def _read_output(self, n_rows: int, n_cols: int) -> torch.Tensor:
+        raw = self.state.D_buffer[0:n_rows * n_cols].reshape(n_rows, n_cols)
+        return torch.from_numpy(np.array(raw)).float()
+
+    def _set_layer_registers(self, nnz_adj: int,
+                              input: torch.Tensor,
+                              weights: torch.Tensor):
+        ip = self.my_ip
+        ip.register_map.N_adj    = input.shape[0]
+        ip.register_map.M_adj    = input.shape[0]
+        ip.register_map.M_fea    = input.shape[1]
+        ip.register_map.P_w      = weights.shape[1]
+        ip.register_map.nnz_adj1 = nnz_adj
+
+    def __repr__(self):
+        return (f"{self.__class__.__name__}"
+                f"({self.in_features} → {self.out_features})")
+
+
+# ---------------------------------------------------------------------------
+# 3.  GINConv_SGRACE
+# ---------------------------------------------------------------------------
+
+class GINConv_SGRACE(_SGRACELayerBase):
+    """
+    Graph Isomorphism Network convolution (Xu et al., 2019).
+
+    Forward computation
+    -------------------
+    .. math::
+        h_v^{(k)} = \\mathrm{MLP}\\!\\left(
+            (1+\\varepsilon)\\,h_v^{(k-1)} W_{\\mathrm{self}}
+            + \\sum_{u \\in \\mathcal{N}(v)} h_u^{(k-1)} W_{\\mathrm{agg}}
+        \\right)
+
+    Hardware mapping
+    ----------------
+    The SGRACE ``sage=1`` instruction computes::
+
+        output = A · (X · W_agg) + X · W_self
+
+    Setting ``W_self = (1 + ε) · weight_linear`` at forward time recovers
+    GIN semantics on the unmodified FPYNQ_GAT kernel (no new ISA entry).
+
+    Instruction byte: ``sage=1, gat=0, linear=1, relu=<arg>``.
+
+    Parameters
+    ----------
+    in_features : int
+    out_features : int
+    state       : SGRACEState
+    eps         : float   Initial ε value (default 0.0).
+    train_eps   : bool    Make ε a learnable parameter (default True).
+    bias        : bool
+    """
+
+    def __init__(self, in_features: int, out_features: int,
+                 state: SGRACEState,
+                 eps: float = 0.0,
+                 train_eps: bool = True,
+                 bias: bool = False):
+
+        self.compute_attention = 0
+        self.sage              = 1
+        self.linear            = 0
+
+        super().__init__(in_features, out_features, state, bias)
+
+        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+        init.xavier_uniform_(self.weight.data, gain=1.414)
+
+        self.weight_linear = Parameter(
+            torch.FloatTensor(in_features, out_features))
+        init.xavier_uniform_(self.weight_linear.data, gain=1.414)
+
+        self.eps = (Parameter(torch.tensor([eps]))
+                    if train_eps
+                    else self.register_buffer("eps", torch.tensor([eps])))
+
+        # Dummy attention — not used by sage path, but FPYNQ_GAT expects it
+        self.attention = torch.empty(size=(2 * out_features, 1))
+
+    def forward(self, input: torch.Tensor,
+                edge_index: torch.Tensor,
+                norm: torch.Tensor,
+                adj,
+                relu: int = 1,
+                dense: int = 0,
+                stream: int = 0,
+                weights_l2=None,
+                weights_l3=None,
+                attention_l2=None,
+                attention_l3=None) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        input      : (N, F_in) node feature matrix.
+        edge_index : (2, E) COO adjacency indices.
+        norm       : (E,) edge normalisation weights.
+        adj        : dense/sparse adjacency (used by FPYNQ_GAT backward).
+        relu       : 1 to enable fused hardware ReLU.
+        dense      : 1 if features are dense (skips COO packing).
+        weights_l2, weights_l3, attention_l2, attention_l3 :
+                     next-layer weights for chained (instant_layer_count > 1)
+                     execution.
+        """
+        st = self.state
+        ip = self.my_ip
+
+        # Fold ε into the self-loop weight for this forward pass
+        weight_self = (1.0 + self.eps) * self.weight_linear
+
+        if config.acc == 1:
+            ip.register_map.load_weights = config.load_weights
+            st.srelu_buffer[0] = 0.0
+
+        _wd = torch.zeros(self.out_features, self.out_features)
+        _ad = torch.zeros(2 * self.out_features, 1)
+        weights_l2   = weights_l2   if weights_l2   is not None else _wd
+        weights_l3   = weights_l3   if weights_l3   is not None else _wd
+        attention_l2 = attention_l2 if attention_l2 is not None else _ad
+        attention_l3 = attention_l3 if attention_l3 is not None else _ad
+
+        if config.instant_layer_count == 1:
+            self._fill_feature_buffer(input, dense)
+            nnz_adj = self._fill_adj_buffer(edge_index, norm)
+            self._set_layer_registers(nnz_adj, input, self.weight)
+            output = FPYNQ_GAT.apply(
+                ip, self, adj, nnz_adj, input,
+                self.weight, weight_self,
+                weights_l2, weights_l3,
+                self.attention, attention_l2, attention_l3,
+                self.out_features, self.dropout, relu,
+            )
+        else:
+            if st.layern == 1:
+                self._fill_feature_buffer(input, dense)
+                nnz_adj = self._fill_adj_buffer(edge_index, norm)
+                self._set_layer_registers(nnz_adj, input, self.weight)
+            output = FPYNQ_GAT.apply(
+                ip, self, adj, len(norm), input,
+                self.weight, weight_self,
+                weights_l2, weights_l3,
+                self.attention, attention_l2, attention_l3,
+                self.out_features, self.dropout, relu,
+            )
+
+        return output
+
+
+# ---------------------------------------------------------------------------
+# 4.  TransformerConv_SGRACE
+# ---------------------------------------------------------------------------
+
+class TransformerConv_SGRACE(_SGRACELayerBase):
+    """
+    Graph Transformer convolution (Shi et al., 2021).
+
+    Forward computation
+    -------------------
+    For each edge (i, j):
+
+    .. math::
+        e_{ij} = \\frac{(x_i W_Q)(x_j W_K)^\\top}{\\sqrt{d_k}}
+
+    Then row-wise softmax and value aggregation:
+
+    .. math::
+        h_i = \\sum_j \\alpha_{ij}\\,(x_j W_V)
+
+    Hardware mapping
+    ----------------
+    The SGRACE ``compute_attention=1`` path computes the LeakyReLU-GAT score
+    ``e = Wh · a`` where ``a ∈ ℝ^{2d×1}``.  Scaled dot-product attention is
+    approximated by initialising ``a = 1/√d · ones(2d, 1)`` so that::
+
+        aᵀ [Whᵢ ‖ Whⱼ] ≈ Whᵢ · Whⱼᵀ / √d
+
+    This runs without any new hardware instructions.  For exact attention,
+    set ``exact_attn=True`` — the CPU precomputes the full attention matrix
+    and the hardware reduces to a plain SpMM (``gat=0``).
+
+    Instruction byte: ``sage=0/1, gat=1, linear=0, relu=<arg>``.
+
+    Parameters
+    ----------
+    in_features  : int
+    out_features : int
+    state        : SGRACEState
+    nheads       : int   Number of attention heads (default 1).
+    beta         : bool  Add a skip-connection via weight_linear (default False).
+    concat       : bool  Concatenate multi-head outputs; else average.
+    exact_attn   : bool  Use exact CPU dot-product attention (default False).
+    bias         : bool
+    """
+
+    def __init__(self, in_features: int, out_features: int,
+                 state: SGRACEState,
+                 nheads: int = 1,
+                 beta: bool = False,
+                 concat: bool = False,
+                 exact_attn: bool = False,
+                 bias: bool = False):
+
+        self.compute_attention = 1
+        self.sage              = 1 if beta else 0
+        self.linear            = 0
+
+        super().__init__(in_features, out_features, state, bias)
+
+        self.nheads     = nheads
+        self.concat     = concat
+        self.exact_attn = exact_attn
+        self.beta       = beta
+
+        head_dim = out_features
+
+        self.W_Q = Parameter(torch.FloatTensor(in_features, head_dim * nheads))
+        self.W_K = Parameter(torch.FloatTensor(in_features, head_dim * nheads))
+        self.W_V = Parameter(torch.FloatTensor(in_features, head_dim * nheads))
+        init.xavier_uniform_(self.W_Q.data, gain=1.414)
+        init.xavier_uniform_(self.W_K.data, gain=1.414)
+        init.xavier_uniform_(self.W_V.data, gain=1.414)
+
+        self.weight_linear = (
+            Parameter(torch.FloatTensor(in_features, out_features))
+            if beta else torch.zeros(in_features, out_features)
+        )
+        if beta:
+            init.xavier_uniform_(self.weight_linear.data, gain=1.414)
+
+        # Hardware aggregation weight = value projection
+        self.weight = self.W_V
+
+        # Attention vector initialised to approximate scaled dot-product
+        d = head_dim * nheads
+        self.attention = Parameter(
+            torch.full((2 * d, 1), fill_value=1.0 / math.sqrt(d)))
+
+        self._scale = math.sqrt(head_dim)
+
+    def _exact_attention(self, input: torch.Tensor,
+                         adj_dense: torch.Tensor) -> torch.Tensor:
+        """Compute exact scaled dot-product attention on CPU."""
+        Q      = input @ self.W_Q                    # (N, H·d)
+        K      = input @ self.W_K                    # (N, H·d)
+        scores = (Q @ K.T) / self._scale             # (N, N)
+        mask   = torch.full_like(scores, -9e15)
+        masked = torch.where(adj_dense > 0, scores, mask)
+        return F.softmax(masked, dim=1)              # (N, N)
+
+    def forward(self, input: torch.Tensor,
+                edge_index: torch.Tensor,
+                norm: torch.Tensor,
+                adj,
+                relu: int = 0,
+                dense: int = 1,
+                stream: int = 0,
+                weights_l2=None,
+                weights_l3=None,
+                attention_l2=None,
+                attention_l3=None) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        input      : (N, F_in) node feature matrix.
+        edge_index : (2, E) COO adjacency indices.
+        norm       : (E,) normalised edge weights.
+        adj        : dense/sparse adjacency tensor.
+        relu       : fused ReLU flag (default 0).
+        dense      : feature-input mode (default 1 for transformer layers).
+        weights_l2, weights_l3, attention_l2, attention_l3 :
+                     chained-mode next-layer weights.
+        """
+        st = self.state
+        ip = self.my_ip
+
+        _wd = torch.zeros(self.out_features, self.out_features)
+        _ad = torch.zeros(2 * self.out_features * self.nheads, 1)
+        weights_l2   = weights_l2   if weights_l2   is not None else _wd
+        weights_l3   = weights_l3   if weights_l3   is not None else _wd
+        attention_l2 = attention_l2 if attention_l2 is not None else _ad
+        attention_l3 = attention_l3 if attention_l3 is not None else _ad
+
+        if config.acc == 1:
+            ip.register_map.load_weights = config.load_weights
+            st.srelu_buffer[0] = 0.0
+
+        if self.exact_attn:
+            adj_dense  = adj.to_dense() if adj.is_sparse else adj
+            attn       = self._exact_attention(input, adj_dense)
+            attn_sp    = attn.to_sparse()
+            edge_index = attn_sp.indices()
+            norm       = attn_sp.values()
+            adj        = attn.to_sparse()
+
+        X_V = input @ self.W_V    # project to value space before DMA fill
+
+        if config.instant_layer_count == 1:
+            self._fill_feature_buffer(X_V, dense)
+            nnz_adj = self._fill_adj_buffer(edge_index, norm)
+            self._set_layer_registers(nnz_adj, X_V, self.W_V)
+            output = FPYNQ_GAT.apply(
+                ip, self, adj, nnz_adj, X_V,
+                self.W_V, self.weight_linear,
+                weights_l2, weights_l3,
+                self.attention, attention_l2, attention_l3,
+                self.out_features, self.dropout, relu,
+            )
+        else:
+            if st.layern == 1:
+                self._fill_feature_buffer(X_V, dense)
+                nnz_adj = self._fill_adj_buffer(edge_index, norm)
+                self._set_layer_registers(nnz_adj, X_V, self.W_V)
+            output = FPYNQ_GAT.apply(
+                ip, self, adj, len(norm), X_V,
+                self.W_V, self.weight_linear,
+                weights_l2, weights_l3,
+                self.attention, attention_l2, attention_l3,
+                self.out_features, self.dropout, relu,
+            )
+
+        if self.nheads > 1:
+            N = output.shape[0]
+            output = output.view(N, self.nheads, self.out_features)
+            output = (output.reshape(N, self.nheads * self.out_features)
+                      if self.concat else output.mean(dim=1))
+
+        return output
