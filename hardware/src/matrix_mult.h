@@ -99,7 +99,7 @@
 #define INT_DEQUANT 1 //remove the scaling of the quantization and the internal scaling in the output (needed and done in hardware)
 #define FEA_THREADS 1
 #define ADJ_THREADS 1
-#define GAT_ENABLE 0 //implement support for GAT
+#define GAT_ENABLE 1 //implement support for GAT
 #define GNN_ONLY 0 //implement support only for GNN (not linear)
 #define LINEAR_ONLY 0 //implement support only for LINEAR
 #define GATV2 0 //usegatv2 modificatino or standard gat

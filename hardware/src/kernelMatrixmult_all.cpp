@@ -1352,9 +1352,12 @@ void writes(float deq_factor[5],ap_uint<1> model[5][8], int first_row, int row_c
         //int rnnz_total = 0;
 
 		bool linear_mode = model[B_index][6];
-		 bool gat_mode = model[B_index][5];
+		bool gat_mode = model[B_index][5];
+		bool sage_mode = model[B_index][7];
 
-		if (linear_mode == 0)
+		bool gcn_path = !(linear_mode^sage_mode);
+
+		if (gcn_path == 1)
 		{
 
 		 if (gat_mode == 1)
@@ -2103,14 +2106,17 @@ void readptr_coo_adj(int nnz_fea,bool gemm_mode,int N,int M,int *rowPtr,hls::str
 
 
 
-void readptr_coo_adj(int nnz_adj,bool linear_mode,bool gemm_mode,int N,int M,int *rowPtr,hls::stream<int> &rnnz_fifo)
+void readptr_coo_adj(int nnz_adj,bool sage_mode,bool linear_mode,bool gemm_mode,int N,int M,int *rowPtr,hls::stream<int> &rnnz_fifo)
 {
 
     #pragma HLS inline off
 
 	//int index_fifo[16384];
 
-    if(linear_mode==0)
+    bool gcn_path = !(linear_mode^sage_mode);
+
+
+    if(gcn_path==1)
     {
 	 if (gemm_mode==0)
 	 {
@@ -2253,11 +2259,14 @@ void readval_csr_adj(int beta_qu,int f_align,float quantization_scale_fea,bool g
 
 }
 
-void readval_coo_adj(int beta_qu,int f_align,float quantization_scale_fea,bool linear_mode,bool gemm_mode,int ccount,int last_index,hls::stream<ATYPE> &A_fifo,hls::stream<int> &col_indices_fifo,INTYPE *values,int *columnIndex)
+void readval_coo_adj(int beta_qu,int f_align,float quantization_scale_fea,bool sage_mode,bool linear_mode,bool gemm_mode,int ccount,int last_index,hls::stream<ATYPE> &A_fifo,hls::stream<int> &col_indices_fifo,INTYPE *values,int *columnIndex)
 {
 
 		#pragma HLS inline off
-	    if(linear_mode==0)
+
+	    bool cgn_path = !(linear_mode^sage_mode);
+
+	    if(cgn_path==1)
 	    {
 	     if (gemm_mode==0)
 	     {
@@ -2377,11 +2386,14 @@ void readval_csr_adj2(int beta_qu,int f_align,float quantization_scale_fea,bool 
 
 }
 
-void readval_coo_adj2(int beta_qu,int f_align,float quantization_scale_fea,bool linear_mode,bool gemm_mode,int ccount,int last_index,hls::stream<ITYPE> &A_fifo,hls::stream<int> &col_indices_fifo,INTYPE *values,int *columnIndex)
+void readval_coo_adj2(int beta_qu,int f_align,float quantization_scale_fea,bool sage_mode,bool linear_mode,bool gemm_mode,int ccount,int last_index,hls::stream<ITYPE> &A_fifo,hls::stream<int> &col_indices_fifo,INTYPE *values,int *columnIndex)
 {
 
 		#pragma HLS inline off
-	   if(linear_mode==0)
+
+	   bool cgn_path = !(linear_mode^sage_mode);
+
+	   if(cgn_path==1)
 	   {
         if (gemm_mode==0)
         {
@@ -3197,6 +3209,10 @@ int *rowPtr_adj,int *columnIndex_adj,INTYPE *values_adj,int B_index)
 
 	gat_mode = model[B_index][5];
 
+	bool sage_mode;
+
+    sage_mode = model[B_index][7];
+
 	int last_index_adj;
 
 	if (gemm_mode==0)
@@ -3224,9 +3240,9 @@ int *rowPtr_adj,int *columnIndex_adj,INTYPE *values_adj,int B_index)
 	 rnnz_fifo_adj_total_s << nnz_adj;
 	}
 
-	readptr_coo_adj(nnz_adj,linear_mode,gemm_mode,row_count,M,rowPtr_adj,rnnz_fifo_adj);
+	readptr_coo_adj(nnz_adj,sage_mode,linear_mode,gemm_mode,row_count,M,rowPtr_adj,rnnz_fifo_adj);
 
-	readval_coo_adj(beta_qu,f_align,quantization_scale_adj,linear_mode,gemm_mode,M,last_index_adj,A_fifo_adj,col_indices_fifo_adj,values_adj,columnIndex_adj);
+	readval_coo_adj(beta_qu,f_align,quantization_scale_adj,sage_mode,linear_mode,gemm_mode,M,last_index_adj,A_fifo_adj,col_indices_fifo_adj,values_adj,columnIndex_adj);
 
 
     	//}
@@ -3247,6 +3263,10 @@ int *rowPtr_adj,int *columnIndex_adj,INTYPE *values_adj, int B_index)
 	bool linear_mode;
 
 	linear_mode =  model[B_index][6];
+
+	bool sage_mode;
+
+	sage_mode =  model[B_index][7];
 
 	if (gemm_mode==0)
 	{
@@ -3285,8 +3305,8 @@ int *rowPtr_adj,int *columnIndex_adj,INTYPE *values_adj, int B_index)
 
         ////////std::cout << "last index adj " << last_index_adj << ////std::endl;
 
-	readptr_coo_adj(nnz_adj,linear_mode,gemm_mode,row_count,M,rowPtr_adj,rnnz_fifo_adj);
-	readval_coo_adj2(beta_qu,f_align,quantization_scale_adj,linear_mode,gemm_mode,M,last_index_adj,A_fifo_adj,col_indices_fifo_adj,values_adj,columnIndex_adj);
+	readptr_coo_adj(nnz_adj,sage_mode,linear_mode,gemm_mode,row_count,M,rowPtr_adj,rnnz_fifo_adj);
+	readval_coo_adj2(beta_qu,f_align,quantization_scale_adj,sage_mode,linear_mode,gemm_mode,M,last_index_adj,A_fifo_adj,col_indices_fifo_adj,values_adj,columnIndex_adj);
 
     	//}
 }
@@ -4209,7 +4229,7 @@ void dsp_kernel_wrapper_lin(bool gemm_mode,int M,hls::stream<LTYPE> &A_fifo,hls:
 
     			LTYPE v = A_fifo.read();
 
-    		    //std::cout << "V " << v << std::endl;
+    		    //std::cout << "M " << M << std::endl;
 
     			int ci;
     			//if (gemm_mode==0)
@@ -4628,7 +4648,16 @@ hls::stream<ITYPE> C_fifo[B_WIDTH_BLOCK],int B_index)
 
 	linear_mode = model[B_index][6];
 
-    if (linear_mode==0)
+    bool sage_mode;
+
+	sage_mode = model[B_index][7];
+
+
+	 bool gcn_path = !(linear_mode^sage_mode);
+
+
+
+    if (gcn_path==1)
     {
 	 for (int A_index = 0; A_index < row_count; A_index++) {
 
@@ -4730,7 +4759,13 @@ void compute1_1(STYPE scale_fea[5],ITYPE* max_fea,int quantized_multiplier,ap_ui
 
 	 linear_mode = model[B_index][6];
 
-	 if(linear_mode==0)
+	 bool sage_mode;
+
+	 sage_mode = model[B_index][7];
+
+	 bool gcn_path = !(linear_mode^sage_mode);
+
+	 if(gcn_path==1)
 	 {
 
       for (int A_index = 0; A_index < row_count; A_index+=SPMM_BLOCK) {
@@ -5245,6 +5280,10 @@ void prepare_attentional_mechanism_input2(
 	bool gat_mode = model[B_index][5];
 	bool linear_mode = model[B_index][6];
 
+	bool sage_mode = model[B_index][7];
+
+	bool gcn_path = !(sage_mode^linear_mode);
+
 
     std::cout << "gat mode is " << gat_mode << std::endl;
 
@@ -5252,12 +5291,12 @@ void prepare_attentional_mechanism_input2(
 
     hls::read_lock<buf> C_mxv(A_buffer11);
 
-    if(gat_mode == 1 & linear_mode == 0)
+    if(gat_mode == 1 & gcn_path == 1)
         mxv(N_adj, P_w_attention, C_mxv, ate_m,WH1,WH2);
 
     #else
 
-    if(gat_mode == 1  & linear_mode == 0)
+    if(gat_mode == 1  & gcn_path == 1)
         mxv(N_adj, P_w_attention, A_buffer11, ate_m,WH1,WH2);
     #endif
 
@@ -5267,7 +5306,7 @@ void prepare_attentional_mechanism_input2(
 
 
 
-    if(linear_mode == 0)
+    if(gcn_path == 1)
     {
      std::cout << "generating attention candidates " << N_adj << std::endl;
 	 LOOP_WH1 : for (int i = 0; i < N_adj; i++) {
@@ -6388,8 +6427,10 @@ void compute_attention2(ap_uint<1> model[5][8],int N_adj,
          bool gat_mode = model[B_index][5];
 
          bool linear_mode = model[B_index][6];
+ 		 bool sage_mode = model[B_index][7];
+ 		 bool gcn_path = !(linear_mode^sage_mode);
 
-    	 if (linear_mode==0)
+    	 if (gcn_path==1)
       	 {
 
     	  if (gat_mode==1)
