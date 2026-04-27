@@ -130,18 +130,31 @@ in demo_sgrace.pynb select your predefined model in cell 1. For example pynq_cla
 Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the following information is printed:
 
 GCN_PYNQ INIT
+
 Model program updated: custom
+
 model_buffer  (total_layer_count=3, instant_layer_count=1)
+
   Slot   Byte     Operator           Flags
+
   ------ -------- ------------------ ------------------------------
+
   [0]    0x10     GCN                relu
+
   [1]    0x02     GCN                dense_fea
+
   [2]    0x42     Linear             dense_fea
+
 GCN_PYNQ(
+
   (conv1): GCNConv_SGRACE (1433 -> 64)
+
   (conv2): GCNConv_SGRACE (64 -> 64)
+
   (reluh): Relu_SGRACE()
+
   (lin): Linear_SGRACE (64 -> 7)
+
 )
 
 model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatilly these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler. 
