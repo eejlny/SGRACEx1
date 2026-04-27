@@ -119,7 +119,7 @@ Make sure this location matches your PYNQ system and store sgrace.py and config.
 
 Make sure training = 1 in demo_sgrace.pynb so the hardware will be used in training mode.
 
-If you are using a py file instead of the notebook pynb On the board prepare the PYNQ environment with:
+If you are using a py file instead of the notebook pynb on the board prepare the PYNQ environment with:
 
 sudo su
 source /etc/profile.d/pynq_venv.sh
@@ -132,7 +132,11 @@ Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the follo
 <img width="680" height="315" alt="{251958C9-DDBD-434C-9360-A867F731E3A1}" src="https://github.com/user-attachments/assets/a41ec5f0-7acd-40c4-ab29-4ae1cd6a3d59" />
 
 
-model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatilly these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler. 
+model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatically these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler. 
+
+A number of predefined pynq_classes are available such as GAT, SAGE etc. 
+
+Note SGRACE performs all quantization/dequantization on device and inputs and outputs floating point numbers. Quantization parameters are written to the accelerator and for quantization to be effective quantization paramereters must be optimized depending on the data set and quantization target. You can observe the max and min values that control quantization for adjacency, weights and features in sgrace.py. For exampe for 8-bit search for "if(config.w_qbits == 8):". 
 
 After the training run the accuracy reached will the around 0.852 with the cora dataset with 16 hidden channels. You can experiment with wider configurations by simply replacing #define MAX_P    16  with 64, for example. You can also support larger graphs by modifying MAX_N and MAX_M. As expected more channels and larger graphs have a significant impact on complexity specially on BRAM usage. You can reduce the impact on complexity by reducing the number of bits used to store the different parameters.  
 
