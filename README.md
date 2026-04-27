@@ -134,7 +134,7 @@ Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the follo
 
 model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatically these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler. 
 
-A number of predefined pynq_classes are available such as GAT, SAGE etc. 
+A number of predefined pynq_classes are available such as GAT, SAGE etc that build models using _sgrace layers. You can select them simply by changing pynq_class = "GAT", for example.
 
 Note SGRACE performs all quantization/dequantization on device and inputs and outputs floating point numbers. Quantization parameters are written to the accelerator and for quantization to be effective quantization paramereters must be optimized depending on the data set and quantization target. You can observe the max and min values that control quantization for adjacency, weights and features in sgrace.py. For exampe for 8-bit search for "if(config.w_qbits == 8):". 
 
