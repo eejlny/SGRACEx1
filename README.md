@@ -125,26 +125,28 @@ sudo su
 source /etc/profile.d/pynq_venv.sh
 source /etc/profile.d/xrt_setup.sh
 
-in demo_sgrace.pynb select your predefined model in cell 1. For example pynq_class = "GCN" will instantiate a GCN model with two gcn layers and one fully connected layer.
+In demo_sgrace.pynb select your predefined model in cell 1. For example pynq_class = "GCN" will instantiate a GCN model with two gcn layers and one fully connected layer.
 
 Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the following information is printed:
 
 <img width="680" height="315" alt="{251958C9-DDBD-434C-9360-A867F731E3A1}" src="https://github.com/user-attachments/assets/a41ec5f0-7acd-40c4-ab29-4ae1cd6a3d59" />
 
 
-model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatically these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler. 
+model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatically these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler with more layers or combining different layer types, for example. 
 
 A number of predefined pynq_classes are available such as GAT, SAGE etc that build models using _sgrace layers. You can select them simply by changing pynq_class = "GAT", for example.
 
-Note SGRACE performs all quantization/dequantization on device and inputs and outputs floating point numbers. Quantization parameters are written to the accelerator and for quantization to be effective quantization paramereters must be optimized depending on the data set and quantization target. You can observe the max and min values that control quantization for adjacency, weights and features in sgrace.py. For exampe for 8-bit search for "if(config.w_qbits == 8):". 
+Note SGRACE performs all quantization/dequantization on device and inputs and outputs floating point numbers. Quantization parameters are written to the accelerator and for quantization to be effective quantization paramereters must be optimized depending on the data set and quantization target. You can observe the max and min values that control quantization for adjacency, weights and features for tested data sets in sgrace.py. For example for 8-bit search for "if(config.w_qbits == 8):". 
 
-After the training run the accuracy reached will the around 0.852 with the cora dataset with 16 hidden channels. You can experiment with wider configurations by simply replacing #define MAX_P    16  with 64, for example. You can also support larger graphs by modifying MAX_N and MAX_M. As expected more channels and larger graphs have a significant impact on complexity specially on BRAM usage. You can reduce the impact on complexity by reducing the number of bits used to store the different parameters.  
+After training  the accuracy reaches around 0.852 with the cora dataset with 16 hidden channels. You can experiment with wider configurations by simply replacing #define MAX_P    16  with 64, for example. You can also support larger graphs by modifying MAX_N and MAX_M. As expected more channels and larger graphs have a significant impact on complexity specially on BRAM usage. You can reduce the impact on complexity by reducing the number of bits used to store the different parameters.  
 
 Now you can open demo_sgrace.pynb and set training = 0 and run the script again. The SGRACE compiler generates new instructions to change the dataflow configuration:
 
 <img width="699" height="311" alt="{A8A270CA-322D-4D5F-9610-69EC0F11E194}" src="https://github.com/user-attachments/assets/4fbfa86e-37d5-4b19-b9b2-3bfcdfe19c83" />
 
-Note that this only changes the contents of model_buffer and the same bit file os used. In this case the changes affect to the streaming of data from one layer output to the next layer input so no interactions to memory take place. In this inference only mode the model will the executed end-to-end on the hardware fully using the streaming dataflow with a single invocation. The model weights saved from training will be loaded and used and the accuracy should be the same.
+Note that this only changes the contents of model_buffer and the same FPGA bit file is used. In this case the changes in the program affect how streaming of data from one layer output to the next layer input is done to avoid interactions with DDR memory. In this inference only mode the model will be executed end-to-end on the FPGA fully using the streaming dataflow with a single invocation. The model weights saved from training will be loaded and the accuracy should be equivalent.
+
+The general SGRACE design principle is the same hardware can execute any model indepdently of the layer types or the number of layers. For example, the 8-bit configuration can execute any quantization target from 1 to 8 bit but more optimized hardware can be obtained if the implementation is done for a quantization target. 
 
 To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
 
@@ -152,7 +154,9 @@ Accelerator forward kernel n-layer time: ~1.6 ms (end-to-end performance with 2 
 
 This represents the execution time of the model in hardware from inputs to final classification. The other times reported refer to python execution time that are not hardware accelerated. 
 
-Higher performance is possible with multithreaded configurations with up to 4 threads possible in Zynq device. The design is compatible with Versal/Alveo boards although further optimization work will be needed. The sgrace compiler is critical to ease the implementation of more complex models such as graph-transformers etc with the accelerator. Current work is targeting how to extend the framework to these layer types. 
+Higher performance is possible with multithreaded configurations with up to 4 threads possible in a Zynq ultrascale device. The design is compatible with Versal/Alveo boards although HBM/BRAM optimizations could be needed for these devices. 
+
+The sgrace compiler is critical to facilitate the implementation of more complex models such as graph-transformers etc with the accelerator. Current work is targeting how to extend the framework to these layer types and how to obtain quantization parameters automatically. 
 
 Contact as if you want to know more and explore possible collaborations (jose.nunez.yanez@upm.es).  
  
