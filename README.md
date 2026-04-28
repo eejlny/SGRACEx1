@@ -127,6 +127,9 @@ source /etc/profile.d/xrt_setup.sh
 
 In demo_sgrace.pynb select your predefined model in cell 1. For example pynq_class = "GCN" will instantiate a GCN model with two gcn layers and one fully connected layer.
 
+<img width="896" height="509" alt="{A64FC7F9-1D1A-405D-BE86-BEFFA7197328}" src="https://github.com/user-attachments/assets/f7d1d327-7fb7-4b1d-b9d5-e9a6e327c180" />
+
+
 Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the following information is printed:
 
 <img width="680" height="315" alt="{251958C9-DDBD-434C-9360-A867F731E3A1}" src="https://github.com/user-attachments/assets/a41ec5f0-7acd-40c4-ab29-4ae1cd6a3d59" />
@@ -159,6 +162,14 @@ Higher performance is possible with multithreaded configurations with up to 4 th
 The sgrace compiler is critical to facilitate the implementation of more complex models such as graph-transformers etc with the accelerator. Current work is targeting how to extend the framework to these layer types and how to obtain quantization parameters automatically. 
 
 Contact as if you want to know more and explore possible collaborations (jose.nunez.yanez@upm.es).  
+
+If you find this work useful please check these papers:
+
+J. Nunez-Yanez and H. Mousanejad Jeddi, "SGRACE: Scalable Architecture for On-Device Inference and Training of Graph Attention and Convolutional Networks," in IEEE Transactions on Very Large Scale Integration (VLSI) Systems, vol. 33, no. 11, pp. 2929-2939, Nov. 2025, doi: 10.1109/TVLSI.2025.3591522. https://ieeexplore.ieee.org/document/11108959
+
+Nunez-Yanez, Jose and Olle Hansson. “On-Device Inference and Training Acceleration of Graph Neural Networks with Quantized Arithmetic.” 2025 International Conference on Field Programmable Technology (ICFPT) (2025): 1-9. https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=11363780
+
+
  
 
 
