@@ -143,7 +143,7 @@ Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the follo
 <img width="680" height="315" alt="{251958C9-DDBD-434C-9360-A867F731E3A1}" src="https://github.com/user-attachments/assets/a41ec5f0-7acd-40c4-ab29-4ae1cd6a3d59" />
 
 
-model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatically these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler with more layers or combining different layer types, for example. 
+model_buffer contains the SGRACE dataflow configuration descriptors and it is similar to the instructions of a CPU. The sgrace compiler derives automatically these descriptors from the contents of the model described in pynq_class. It is possible to create custom pynq classes for the compiler with more layers or combining different layer types. 
 
 A number of predefined pynq_classes are available such as GAT, SAGE etc that build models using _sgrace layers. You can select them simply by changing pynq_class = "GAT", for example.
 
