@@ -159,7 +159,7 @@ Note that this only changes the contents of model_buffer and the same FPGA bit f
 
 ANALYZING RESULTS:
 
-The general SGRACE design principle is that the same hardware can execute any model independently of the layer types or the number of layers. For example, the 8-bit configuration can execute any quantization target from 1 to 8 bit but more optimized hardware can be obtained if the implementation is done for lower quantization target. 
+The general SGRACE design principle is that the same hardware can execute any model independently of the layer types or the number of layers. For example, the 8-bit configuration can execute any quantization target from 1 to 8 bit but more optimized hardware can be obtained if the implementation is done with a lower quantization target. 
 
 To obtain performance profiling data use profiling = 1 in config.py. The model execution is shown as:
 
