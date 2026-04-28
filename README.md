@@ -1,5 +1,7 @@
 <img width="360" height="140" alt="image" class="center-img" src="https://github.com/user-attachments/assets/984c9357-5526-429a-af1c-ce79fb895bbd" /> 
 
+INTRO:
+
 SGRACE (Scalable GRaph Attention and Convolutional Engine) is a high-performance dataflow architecture for graph convolutional and attention networks that supports adaptive quantization and sparsity. Input tensors for adjacency and features are presented to SGRACE in COO format and SGRACE uses sparse data operations (i.e. SPMM) to process them. SGRACE performs all quantization/dequantization processes on-device and adaptively quantizes data from an input precision (i.e. float)  to 1/2/4/8-bit depending on data complexity and systems requirements.  The input precision depends on the data source and could be 12-bit for a ADC sensor or floats for a standard graph dataset.
 
 Layers supported in SGRACE include GCNConv, GATconv, SAGEConv and Linear but the flexibility of the hardware accelerator means that other configurations are possible for GINConv, SAGE-GAT etc. SGRACE is built around 4 compute engines: agregation engine, combination engine, attention engine and linear engine arranged in a parallel and dataflow configurations as shown in the figure below. SGRACE uses a global formulation to maximize performance and the flexibility of the hardware means that multiple message passing layers can be implemented. 
@@ -39,6 +41,8 @@ SGRACE: Scalable Architecture for On-Device Inference and Training of Graph Atte
 https://ieeexplore.ieee.org/document/11108959
 
 <img width="2469" height="1022" alt="image" src="https://github.com/user-attachments/assets/2603d852-0c80-464d-a5b8-29a1f976f685" />
+
+BUILDING THE HARDWARE:
 
 Most of the tests have been done with Vitis 2022.1 version and Pynq 2.7.0.
 
@@ -87,6 +91,8 @@ Optionally modify this line as needed in project_1.tcl to set a new project name
 **set _xil_proj_name_ "vivado"**
 
 After completion all results are available under the new project name directory. 
+
+RUNNING GNN MODELS:
 
 The software directory contains python scripts that can be used to test the design in the PYNQ FPGA board
 and measure performance. 
@@ -152,6 +158,8 @@ Now you can open demo_sgrace.pynb and set training = 0 and run the script again.
 <img width="699" height="311" alt="{A8A270CA-322D-4D5F-9610-69EC0F11E194}" src="https://github.com/user-attachments/assets/4fbfa86e-37d5-4b19-b9b2-3bfcdfe19c83" />
 
 Note that this only changes the contents of model_buffer and the same FPGA bit file is used. In this case the changes in the program affect how streaming of data from one layer output to the next layer input is done to avoid interactions with DDR memory. In this inference only mode the model will be executed end-to-end on the FPGA fully using the streaming dataflow with a single invocation. The model weights saved from training will be loaded and the accuracy should be equivalent.
+
+ANALYZING RESULTS:
 
 The general SGRACE design principle is that the same hardware can execute any model independently of the layer types or the number of layers. For example, the 8-bit configuration can execute any quantization target from 1 to 8 bit but more optimized hardware can be obtained if the implementation is done for lower quantization target. 
 
