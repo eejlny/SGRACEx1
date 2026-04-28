@@ -128,6 +128,7 @@ source /etc/profile.d/xrt_setup.sh
 In demo_sgrace.pynb select your predefined model in cell 1. For example pynq_class = "GCN" will instantiate a GCN model with two gcn layers and one fully connected layer.
 
 <img width="896" height="509" alt="{A64FC7F9-1D1A-405D-BE86-BEFFA7197328}" src="https://github.com/user-attachments/assets/f7d1d327-7fb7-4b1d-b9d5-e9a6e327c180" />
+<img width="832" height="502" alt="{26091111-457D-444B-BD5E-D49EDC318142}" src="https://github.com/user-attachments/assets/9805ec65-6cea-4a1e-bb30-72a0657437f0" />
 
 
 Run the notebook, the pynq_class is compiled into a SGRACE opbytes and the following information is printed:
