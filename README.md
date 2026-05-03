@@ -167,7 +167,11 @@ Accelerator forward kernel n-layer time: ~1.6 ms (end-to-end performance with 2 
 
 This represents the execution time of the model in hardware from inputs to final classification. The other times reported refer to python execution time that are not hardware accelerated. 
 
-Higher performance is possible with multithreaded configurations with up to 4 threads possible in a Zynq ultrascale device. Also, a production environment could replace the python setup with a XRT/C++ run-time to reduce CPU software overheads. The design is compatible with Versal/Alveo boards although additional HBM/BRAM optimizations could be needed to optimize for these devices.
+OPTIMIZACION
+
+To create hardware optimized for qauntization targets lower than 8 bit edit mmult.h and modify the data types accordingly. Check the case for 1bit for guidance. Then run the flow Vitis and Vidadon flow for the new target. 
+
+Higher performance is possible with multithreaded configurations with up to 4 threads (eg x2 and x4) possible in a Zynq ultrascale device. The current open-source release targets the one thread configuration. Also, a production environment could replace the python setup with a XRT/C++ run-time to reduce CPU software overheads. The design is compatible with Versal/Alveo boards although additional HBM/BRAM optimizations could be needed to optimize for these devices.
 
 The sgrace compiler is critical to facilitate the implementation of more complex models such as graph-transformers etc with the accelerator. Current work is targeting how to extend the framework to these layer types and how to obtain quantization parameters automatically. 
 
