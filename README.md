@@ -40,7 +40,7 @@ https://ieeexplore.ieee.org/document/11108959
 
 <img width="2469" height="1022" alt="image" src="https://github.com/user-attachments/assets/2603d852-0c80-464d-a5b8-29a1f976f685" />
 
-v2 offers better support for different layer types and an experimental automatic compiler to generate firmware to configure the accelerator starting with a python description of the neural network model. It is the recommended version unless you have problems in which case you can use v1. 
+v2 offers better support for different layer types and an experimental automatic compiler to generate firmware to configure the accelerator starting with a python description of the neural network model. In v2 at the top of demo_sgrace.py you select the target model like pynq_class = "GCN" and the tool compiles the instructions/descriptors for the accelerator automatically. Use pynq_class = "None" to run the model in the ARM processors without acceleration. V2 is the recommended version unless you have problems in which case you can use v1. 
 
 BUILDING THE HARDWARE:
 
