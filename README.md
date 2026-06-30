@@ -59,6 +59,7 @@ or
 
 **source <path to tools>/Xilinx/Vitis/2022.1/settings64-Vitis.sh**
 
+
 edit matrix.h located the in the src directory and modify the following lines if needed:
 
 Recommended settings for rfsoc2x2 board:
@@ -74,6 +75,7 @@ Recommended settings for rfsoc2x2 board:
 To enable the attention engine set GAT_ENABLE to 1 
 #define GAT_ENABLE 1 //implement support for GAT
 
+
 Recommended settings for ultra96v2 board:
 
 #define MAX_N    4096 // max number of input nodes in the graph. For example the cora dataset has 2708 nodes
@@ -88,6 +90,7 @@ Recommended settings for ultra96v2 board:
 
 After performing configuration go to the hardware directory and perform simulation, C synthesis (optional cosimulation check the script cosim command) with this command:
 
+
 **vitis_hls -f ./script.tcl**
 
 Check script.tcl to make sure that the set_part command matches your device is correct or modify as needed.
@@ -98,10 +101,15 @@ HLS simulation should report that the results match.
 
 Once HLS synthesis and IP export has completed launch implementation and bitstream generation with this command:
 
+if you are using Vivado 2022.1
+
+**vivado -mode batch -source ./project_3.tcl**
+
+if you are using Vivado 2025.2
 
 **vivado -mode batch -source ./project_1.tcl**
 
-Optionally modify this line as needed in project_1.tcl to set a new project name/directory 
+Optionally modify this line as needed in project_1.tcl/project_3.tcl to set a new project name/directory 
 
 **set _xil_proj_name_ "vivado"**
 
