@@ -83,10 +83,15 @@ HLS simulation should report that the results match.
 
 Once HLS synthesis and IP export has completed launch implementation and bitstream generation with this command:
 
+if you are using Vivado 2022.1
+
+**vivado -mode batch -source ./project_3.tcl**
+
+if you are using Vivado 2025.2
 
 **vivado -mode batch -source ./project_1.tcl**
 
-Optionally modify this line as needed in project_1.tcl to set a new project name/directory 
+Optionally modify this line as needed in project_1.tcl/project_3.tcl to set a new project name/directory 
 
 **set _xil_proj_name_ "vivado"**
 
