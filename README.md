@@ -62,7 +62,7 @@ or
 
 edit matrix.h located the in the src directory and modify the following lines if needed:
 
-Recommended settings for rfsoc2x2 board:
+Recommended settings for a board like a rfsoc2x2:
 
 #define MAX_N    4096 // max number of input nodes in the graph. For example the cora dataset has 2708 nodes
 
@@ -76,7 +76,7 @@ To enable the attention engine set GAT_ENABLE to 1
 #define GAT_ENABLE 1 //implement support for GAT
 
 
-Recommended settings for ultra96v2 board:
+Recommended settings for a board like a ultra96v2:
 
 #define MAX_N    4096 // max number of input nodes in the graph. For example the cora dataset has 2708 nodes
 
