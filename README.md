@@ -61,17 +61,32 @@ or
 
 edit matrix.h located the in the src directory and modify the following lines if needed:
 
+Recommended settings for rfsoc2x2 board:
+
 #define MAX_N    4096 // max number of input nodes in the graph. For example the cora dataset has 2708 nodes
 
-#define MAX_M    2048 // max number of features in each input node. For example the cora dataset has 1433 features per node;
+#define MAX_M    4096 // max number of features in each input node. For example the cora dataset has 1433 features per node;
 
-#define MAX_P    16  // number of hidden channels. 
+#define MAX_P    64  // number of hidden channels. 
 
+#define LINEAR_ENABLE 1
 
 To enable the attention engine set GAT_ENABLE to 1 
 #define GAT_ENABLE 1 //implement support for GAT
 
-Now go to the hardware directory and perform simulation, C synthesis (optional cosimulation check the script cosim command) with this command:
+Recommended settings for ultra96v2 board:
+
+#define MAX_N    4096 // max number of input nodes in the graph. For example the cora dataset has 2708 nodes
+
+#define MAX_M    4096 // max number of features in each input node. For example the cora dataset has 1433 features per node;
+
+#define MAX_P    16  // number of hidden channels. 
+
+#define LINEAR_ENABLE 1
+
+#define GAT_ENABLE 0 //disable support for GAT
+
+After performing configuration go to the hardware directory and perform simulation, C synthesis (optional cosimulation check the script cosim command) with this command:
 
 **vitis_hls -f ./script.tcl**
 
