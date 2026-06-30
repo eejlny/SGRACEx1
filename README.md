@@ -59,6 +59,7 @@ or
 
 **source <path to tools>/Xilinx/Vitis/2022.1/settings64-Vitis.sh**
 
+
 edit matrix.h located the in the src directory and modify the following lines if needed:
 
 #define MAX_N    4096 // max number of input nodes in the graph. For example the cora dataset has 2708 nodes
@@ -71,7 +72,7 @@ edit matrix.h located the in the src directory and modify the following lines if
 To enable the attention engine set GAT_ENABLE to 1 
 #define GAT_ENABLE 1 //implement support for GAT
 
-Now go to the hardware directory and perform simulation, C synthesis (optional cosimulation check the script cosim command) with this command:
+Now go to the hardware directory and v1 or v2 versions and perform simulation, C synthesis (optional cosimulation check the script cosim command) with this command:
 
 **vitis_hls -f ./script.tcl**
 
